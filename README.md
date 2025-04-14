@@ -1,5 +1,7 @@
 # Static Site Generator with Admin Panel
 
+> **Note:** All documentation, code comments, and commit messages in this project are written in **English**.
+
 This project implements a static website generator with a web-based admin panel for content management.
 
 ## 1. Core Idea and Data Flow
@@ -84,6 +86,8 @@ my_project/
 13. Image URLs within the HTML content point to the Caddy `/images` reverse proxy, which serves them from MinIO.
 
 ## 5. Running the Project (General Steps)
+
+See [infrastructure/DEV_SETUP.md](infrastructure/DEV_SETUP.md) for detailed development setup instructions.
 
 1.  **Clone the repository.**
 2.  **Configure Environment Variables**: Copy `.env.example` to `.env` and fill in the necessary values (database URI, MinIO credentials, domain name for Caddy if using HTTPS, etc.).

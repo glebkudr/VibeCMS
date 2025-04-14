@@ -2,15 +2,18 @@ from fastapi import FastAPI
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
 from contextlib import asynccontextmanager
+import logging # Import logging
 
 """
-Архитектурное решение:
-- Подключение к MongoDB реализовано через motor (асинхронный драйвер).
-- Клиент MongoDB создаётся при запуске приложения и закрывается при завершении.
-- Используются переменные окружения для URI и имени БД.
-- Клиент экспортируется через app.state для использования в роутерах.
-- Все параметры подключения централизованы и документированы.
+Architectural decision:
+- MongoDB connection is implemented using motor (async driver).
+- MongoDB client is created on application startup and closed on shutdown.
+- Environment variables are used for URI and database name.
+- The client is exported via app.state for use in routers.
+- All connection parameters are centralized and documented.
 """
+
+logger = logging.getLogger(__name__) # Get logger instance
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://mongo:27017/mydatabase")
 MONGO_DATABASE = os.getenv("MONGO_DATABASE", "mydatabase")
@@ -18,15 +21,30 @@ MONGO_DATABASE = os.getenv("MONGO_DATABASE", "mydatabase")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Контекст жизненного цикла приложения FastAPI.
-    Инициализирует и закрывает MongoDB клиент.
+    FastAPI application lifespan context.
+    Initializes and closes the MongoDB client.
     """
-    app.state.mongo_client = AsyncIOMotorClient(MONGO_URI)
-    app.state.mongo_db = app.state.mongo_client[MONGO_DATABASE]
-    print("MongoDB подключение установлено.")
-    yield
-    app.state.mongo_client.close()
-    print("MongoDB подключение закрыто.")
+    try:
+        app.state.mongo_client = AsyncIOMotorClient(MONGO_URI)
+        # The ismaster command is cheap and does not require auth.
+        await app.state.mongo_client.admin.command('ismaster')
+        app.state.mongo_db = app.state.mongo_client[MONGO_DATABASE]
+        logger.info("MongoDB connection established.")
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB: {e}")
+        # Optionally re-raise or handle differently to prevent app start?
+        # For now, just log the error.
+        app.state.mongo_client = None
+        app.state.mongo_db = None
+
+    yield # Application runs here
+
+    if app.state.mongo_client:
+        app.state.mongo_client.close()
+        logger.info("MongoDB connection closed.")
+
+# Configure basic logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 app = FastAPI(
     title="Admin Panel API",
@@ -41,19 +59,27 @@ async def read_root():
     return {"message": "Admin Panel API is running!"}
 
 """
-Централизованное подключение роутов:
-- CRUD-роуты для статей подключаются из admin_app/routes/articles.py.
-- Эндпоинты для изображений будут добавлены позже.
+Centralized router inclusion:
+- CRUD routes for articles are included from admin_app/routes/articles.py.
+- Image endpoints are included from admin_app/routes/images.py.
 """
 from admin_app.routes import articles
-app.include_router(articles.router)
-# from admin_app.routes import images
-# app.include_router(images.router)
+from admin_app.routes import images
 
-# Пример использования клиента в эндпоинтах:
-# db = request.app.state.mongo_db
+app.include_router(articles.router, prefix="/admin", tags=["Articles"])
+app.include_router(images.router, prefix="/admin", tags=["Images"])
+
+# Example usage of the client in endpoints:
+# from fastapi import Request
+# @app.get("/some_path")
+# async def some_endpoint(request: Request):
+#     db = request.app.state.mongo_db
+#     if not db:
+#         raise HTTPException(status_code=503, detail="Database not available")
+#     # ... use db ...
 
 if __name__ == "__main__":
     import uvicorn
     # This part is mainly for local development without docker/uvicorn command
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    logger.info("Starting Uvicorn server locally...")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) # Use reload for development

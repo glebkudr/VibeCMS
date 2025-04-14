@@ -1,69 +1,69 @@
-# План Задач по Реализации
+# Implementation Task Plan
 
-Этот файл содержит список задач для разработки статического генератора сайта с админкой.
+This file contains the list of tasks for developing the static site generator with an admin panel.
 
-## Этап 1: Настройка Инфраструктуры и Окружения
+## Phase 1: Infrastructure and Environment Setup
 
-*   [x] Создать базовую структуру директорий проекта (`admin_app`, `generator`, `infrastructure`, `static_output`).
-*   [x] Написать `docker-compose.yml` для запуска:
+*   [x] Create basic project directory structure (`admin_app`, `generator`, `infrastructure`, `static_output`).
+*   [x] Write `docker-compose.yml` to run:
     *   [x] MongoDB
-    *   [x] MinIO (с настройкой бакета для изображений, например `images`)
-    *   [x] Admin App (FastAPI/Uvicorn) - пока можно просто базовый образ Python
+    *   [x] MinIO (with bucket setup for images, e.g., `images`)
+    *   [x] Admin App (FastAPI/Uvicorn) - basic Python image is fine for now
     *   [x] Caddy
-*   [x] Написать базовый `Caddyfile` с настройками для:
-    *   [x] Раздачи статики из `static_output` (с авто-HTTPS, если указан домен)
-    *   [x] Проксирования `/admin` на Admin App
-    *   [x] Проксирования `/images` на MinIO
-*   [x] Создать файл `.env.example` с необходимыми переменными окружения (MONGO_URI, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_ENDPOINT_URL, MINIO_BUCKET_NAME, CADDY_DOMAIN_NAME).
-*   [x] Настроить базовые `requirements.txt` для `admin_app` и `generator`.
-*   [ ] Проверить запуск всех сервисов через `docker-compose up`.
+*   [x] Write a basic `Caddyfile` with settings for:
+    *   [x] Serving static files from `static_output` (with auto-HTTPS if domain is specified)
+    *   [x] Proxying `/admin` to the Admin App
+    *   [x] Proxying `/images` to MinIO
+*   [x] Create `.env.example` file with necessary environment variables (MONGO_URI, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_ENDPOINT_URL, MINIO_BUCKET_NAME, CADDY_DOMAIN_NAME).
+*   [x] Set up basic `requirements.txt` for `admin_app` and `generator`.
+*   [ ] Verify all services start via `docker-compose up`.
 
-## Этап 2: Разработка Админки (Admin App - FastAPI)
+## Phase 2: Admin Panel Development (Admin App - FastAPI)
 
-*   [x] Настроить подключение к MongoDB (используя `motor` или `pymongo`).  
-    _Выполнено 14.04.2025: асинхронное подключение через motor, централизовано в main.py._
-*   [x] Определить Pydantic модели для статей (`ArticleCreate`, `ArticleRead`, `ArticleUpdate`, `ArticleInDB`).  
-    _Выполнено 14.04.2025: admin_app/models.py, с документацией._
-*   [x] Реализовать CRUD операции для статей (`/admin/articles`):  
-    _Выполнено 14.04.2025: admin_app/routes/articles.py, тесты — testing/test_articles_crud.py._
-    *   [x] POST `/admin/articles`: Создание новой статьи (статус по умолчанию `draft`).
-    *   [x] GET `/admin/articles`: Получение списка статей (с пагинацией).
-    *   [x] GET `/admin/articles/{article_id}`: Получение конкретной статьи.
-    *   [x] PUT `/admin/articles/{article_id}`: Обновление статьи (включая изменение статуса).
-    *   [x] DELETE `/admin/articles/{article_id}`: Удаление статьи.
-*   [ ] Настроить подключение к MinIO (используя `boto3`).
-*   [ ] Реализовать эндпоинт для загрузки изображений (`/admin/images`):
-    *   [ ] POST `/admin/images`: Принимает файл, загружает в MinIO, возвращает URL изображения (через Nginx proxy).
-*   [ ] Добавить базовую аутентификацию/авторизацию для админки (например, HTTP Basic Auth или JWT).
-*   [ ] (Опционально) Реализовать версионирование статей при обновлении.
-*   [ ] Добавить логгирование.
+*   [x] Configure MongoDB connection (using `motor` or `pymongo`).
+    _Done 2025-04-14: Async connection via motor, centralized in main.py._
+*   [x] Define Pydantic models for articles (`ArticleCreate`, `ArticleRead`, `ArticleUpdate`, `ArticleInDB`).
+    _Done 2025-04-14: admin_app/models.py, with documentation._
+*   [x] Implement CRUD operations for articles (`/admin/articles`):
+    _Done 2025-04-14: admin_app/routes/articles.py, tests — testing/test_articles_crud.py._
+    *   [x] POST `/admin/articles`: Create a new article (default status `draft`).
+    *   [x] GET `/admin/articles`: Get a list of articles (with pagination).
+    *   [x] GET `/admin/articles/{article_id}`: Get a specific article.
+    *   [x] PUT `/admin/articles/{article_id}`: Update an article (including status change).
+    *   [x] DELETE `/admin/articles/{article_id}`: Delete an article.
+*   [x] Configure MinIO connection (using `boto3`).
+*   [x] Implement image upload endpoint (`/admin/images`):
+    *   [x] POST `/admin/images`: Accepts a file, uploads to MinIO, returns image URL (via Caddy proxy).
+*   [ ] Add basic authentication/authorization for the admin panel (e.g., HTTP Basic Auth or JWT).
+*   [ ] (Optional) Implement article versioning on update.
+*   [ ] Add logging.
 
-## Этап 3: Разработка Генератора Статики (Generator)
+## Phase 3: Static Site Generator Development (Generator)
 
-*   [ ] Настроить подключение к MongoDB.
-*   [ ] Настроить Jinja2 для работы с шаблонами в `generator/templates/`.
-*   [ ] Создать базовые шаблоны (`base.html`, `article.html`).
-*   [ ] Реализовать основную логику в `generate.py`:
-    *   [ ] Получение всех статей со статусом `published` из MongoDB.
-    *   [ ] Очистка директории `static_output` перед генерацией.
-    *   [ ] Для каждой статьи:
-        *   [ ] Преобразование `content_md` в HTML с помощью `markdown-it-py`.
-        *   [ ] Рендеринг HTML с использованием Jinja2 шаблона (`article.html`).
-        *   [ ] Сохранение результата в `static_output/{slug}/index.html`.
-    *   [ ] (Опционально) Генерация индексной страницы со списком статей.
-    *   [ ] (Опционально) Копирование статических ассетов (CSS, JS) в `static_output`.
-*   [ ] Добавить логгирование в скрипт генерации.
+*   [ ] Configure MongoDB connection.
+*   [ ] Configure Jinja2 for templates in `generator/templates/`.
+*   [ ] Create base templates (`base.html`, `article.html`).
+*   [ ] Implement main logic in `generate.py`:
+    *   [ ] Fetch all articles with status `published` from MongoDB.
+    *   [ ] Clear the `static_output` directory before generation.
+    *   [ ] For each article:
+        *   [ ] Convert `content_md` to HTML using `markdown-it-py`.
+        *   [ ] Render HTML using Jinja2 template (`article.html`).
+        *   [ ] Save the result to `static_output/{slug}/index.html`.
+    *   [ ] (Optional) Generate an index page with a list of articles.
+    *   [ ] (Optional) Copy static assets (CSS, JS) to `static_output`.
+*   [ ] Add logging to the generation script.
 
-## Этап 4: Тестирование и Доработка
+## Phase 4: Testing and Refinement
 
-*   [ ] Протестировать полный цикл: создание статьи -> загрузка картинки -> публикация -> запуск генератора -> проверка статического сайта и доступности картинки.
-*   [ ] Настроить CORS в FastAPI, если админка будет SPA.
-*   [ ] Добавить обработку ошибок и валидацию во все компоненты.
-*   [ ] Проверить корректность работы Caddy proxy для всех location.
-*   [ ] Написать/дополнить документацию в `README.md`.
+*   [ ] Test the full cycle: create article -> upload image -> publish -> run generator -> check static site and image accessibility.
+*   [ ] Configure CORS in FastAPI if the admin panel will be a SPA.
+*   [ ] Add error handling and validation to all components.
+*   [ ] Verify Caddy proxy works correctly for all locations.
+*   [ ] Write/update documentation in `README.md`.
 
-## Этап 5: Развертывание (Deployment)
+## Phase 5: Deployment
 
-*   [ ] Подготовить инструкции по развертыванию на сервере.
-*   [ ] Настроить CI/CD (опционально).
-*   [ ] Настроить бэкапы MongoDB и MinIO.
+*   [ ] Prepare deployment instructions for a server.
+*   [ ] Set up CI/CD (optional).
+*   [ ] Set up backups for MongoDB and MinIO.

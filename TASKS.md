@@ -17,6 +17,8 @@ This file contains the list of tasks for developing the static site generator wi
 *   [x] Create `.env.example` file with necessary environment variables (MONGO_URI, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_ENDPOINT_URL, MINIO_BUCKET_NAME, CADDY_DOMAIN_NAME).
 *   [x] Set up basic `requirements.txt` for `admin_app` and `generator`.
 *   [ ] Verify all services start via `docker-compose up`.
+*   [x] Update Caddyfile to support both localhost (:80) and domain (from CADDY_DOMAIN_NAME env), with correct global block and shared config.
+*   [x] Update DEV_SETUP.md to document dev/prod Caddy usage, HTTPS, and environment variable setup. Ensure instructions and Caddyfile are consistent.
 
 ## Phase 2: Admin Panel Development (Admin App - FastAPI)
 

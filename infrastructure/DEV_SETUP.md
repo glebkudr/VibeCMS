@@ -1,6 +1,6 @@
-# Development Setup Guide
+# Development & Production Setup Guide
 
-This guide describes how to run the project in development mode using the `.env.dev` environment file.
+This guide describes how to run the project in both development (localhost) and production (domain, HTTPS) modes using the `.env.dev` environment file and Caddy configuration.
 
 ## 1. Prerequisites
 - Docker and Docker Compose installed
@@ -9,36 +9,58 @@ This guide describes how to run the project in development mode using the `.env.
 
 ## 2. Environment Configuration
 
-- Copy `.env.dev` to `.env` in the project root if you want to run locally:
-  ```powershell
-  # If .env already exists, you might want to back it up first
-  Copy-Item .env.dev .env -Force
-  ```
-- Alternatively, Docker Compose typically automatically loads `.env` if present in the project root.
+- All environment variables for the services are passed via the `environment` section in `docker-compose.yml`.
+- The `.env` file is **not used** for variable substitution in the compose file itself.
+- To run with your own environment variables, create or edit `.env.dev` in the project root (see example below).
 
-## 3. Running with Docker Compose
+## 3. Running with Docker Compose (Development: localhost)
 
-Ensure you have a `.env` file (either copied from `.env.dev` or `.env.example`) in the project root.
+By default, Caddy will serve the site on `http://localhost` (port 80) for local development.
 
-Then build and start all services:
+Run all services using your environment file:
 
 ```powershell
-docker-compose up --build -d
+docker-compose --env-file .env.dev up --build -d
 ```
 
 This will start:
 - MongoDB
 - MinIO
-- Caddy
+- Caddy (serving on http://localhost)
 - Admin App (FastAPI)
 
-## 4. Accessing the Services
+## 4. Running in Production (Domain & HTTPS)
 
-- **Admin Panel (Swagger UI):** [http://localhost/admin/docs](http://localhost/admin/docs)
-- **MinIO Console:** [http://localhost:9001](http://localhost:9001) (Default login: `minioadmin` / `minioadmin` - as set in `.env`/`.env.dev`)
-- **Static Site (served by Caddy):** [http://localhost/](http://localhost/)
+To run with your own domain and enable HTTPS:
 
-## 5. Useful Commands
+1. **Set the domain name in your environment file** (or export as an environment variable):
+   ```dotenv
+   CADDY_DOMAIN_NAME=yourdomain.com
+   ```
+2. **Edit `infrastructure/Caddyfile`:**
+   - **Comment out or remove the line** `auto_https off` in the global options block at the top of the file. This enables automatic HTTPS via Let's Encrypt.
+   - The Caddyfile already contains a block for `{$CADDY_DOMAIN_NAME}`. When this variable is set, Caddy will listen on your domain and obtain a certificate.
+3. **Restart Caddy:**
+   ```powershell
+   docker-compose --env-file .env.dev up --build -d caddy
+   ```
+   (Or restart all services if needed)
+
+**Note:** Your domain must point to your server's public IP address for HTTPS to work.
+
+## 5. Accessing the Services
+
+- **Admin Panel (Swagger UI):**
+  - Dev: [http://localhost/admin/docs](http://localhost/admin/docs)
+  - Prod: [https://yourdomain.com/admin/docs](https://yourdomain.com/admin/docs)
+- **MinIO Console:**
+  - Dev: [http://localhost:9001](http://localhost:9001)
+  - Prod: [https://yourdomain.com:9001](https://yourdomain.com:9001) (if port is open)
+- **Static Site:**
+  - Dev: [http://localhost/](http://localhost/)
+  - Prod: [https://yourdomain.com/](https://yourdomain.com/)
+
+## 6. Useful Commands
 
 - Stop all services:
   ```powershell
@@ -61,10 +83,36 @@ This will start:
   docker-compose logs -f admin_app
   ```
 
-## 6. Notes
-- It is recommended to use `.env.dev` (copied to `.env`) for local development.
-- Do not commit actual secrets in `.env` or `.env.dev` to version control (`.gitignore` should prevent this).
+## 7. Example .env.dev
+
+```dotenv
+# MongoDB
+MONGO_URI=mongodb://mongo:27017/mydatabase
+MONGO_DATABASE=mydatabase
+
+# MinIO
+MINIO_ENDPOINT_URL=http://minio:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET_NAME=images
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=minioadmin
+
+# Admin App
+ADMIN_APP_PORT=8000
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
+
+# Caddy
+CADDY_DOMAIN_NAME=localhost # For dev use 'localhost', for prod set your domain
+CADDY_HTTP_PORT=80
+CADDY_HTTPS_PORT=443
+```
+
+## 8. Notes
+- Do not commit actual secrets in `.env.dev` to version control (`.gitignore` should prevent this).
 - Use Swagger UI (`/admin/docs`) for testing API endpoints like image uploads.
+- For production, ensure your domain's DNS is set up correctly and ports 80/443 are open.
 
 ---
 

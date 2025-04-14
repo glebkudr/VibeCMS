@@ -7,10 +7,15 @@
 	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory # Use Let's Encrypt staging for testing
 }
 
-# Define the main site address. Use environment variable or default to localhost.
-# If CADDY_DOMAIN_NAME is set in .env, Caddy will attempt automatic HTTPS.
-{$CADDY_DOMAIN_NAME localhost} {
+:80 {
+	import site_common
+}
 
+{$CADDY_DOMAIN_NAME} {
+	import site_common
+}
+
+(site_common) {
 	# Enable compression
 	encode gzip zstd
 

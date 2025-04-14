@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic
+
+# Database
+motor # Async MongoDB driver
+
+# S3 Storage
+boto3
+
+# For file uploads from forms
+python-multipart
+
+# Environment variable loading
+python-dotenv 

@@ -1,0 +1,24 @@
+Пользовательский запрос от 2025-04-14:
+
+Продолжить разработку проекта "Статический генератор сайта с админкой" с текущего состояния.
+
+Следующие задачи:
+- Определить Pydantic-модели для статей (ArticleCreate, ArticleRead, ArticleUpdate, ArticleInDB).
+- Реализовать CRUD-роуты для статей в FastAPI (POST, GET, PUT, DELETE).
+- Настроить подключение к MinIO и реализовать эндпоинт для загрузки изображений.
+- Добавить базовую аутентификацию/авторизацию для админки.
+- (Опционально) Версионирование статей и логгирование.
+
+Необходимые файлы:
+- admin_app/main.py
+- admin_app/routes/articles.py
+- admin_app/routes/images.py
+- admin_app/models.py
+- admin_app/requirements.txt
+- .env/.env.example
+- testing/test_mongodb_connection.py
+- specification/system_specification.md
+- prompt/ (для фиксации новых задач)
+- infrastructure/docker-compose.yml, infrastructure/Caddyfile
+
+Инструкция: выполнять задачи поэтапно, фиксировать изменения в prompt, обновлять спецификацию и тесты.

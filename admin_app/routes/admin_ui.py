@@ -130,4 +130,11 @@ async def article_delete(request: Request, article_id: str, user: str = Depends(
         await db.articles.delete_one({"_id": oid})
         return RedirectResponse(url="/admin/articles", status_code=302)
     except Exception as e:
-        return templates.TemplateResponse("admin/article_view.html", {"request": request, "error": str(e), "user": user}, status_code=400) 
+        return templates.TemplateResponse("admin/article_view.html", {"request": request, "error": str(e), "user": user}, status_code=400)
+
+@router.get("/", include_in_schema=False)
+async def root(request: Request):
+    user = get_current_user_ui(request)
+    if isinstance(user, RedirectResponse):
+        return RedirectResponse(url="/admin/login", status_code=302)
+    return RedirectResponse(url="/admin/articles", status_code=302) 

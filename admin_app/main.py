@@ -54,11 +54,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-@app.get("/", tags=["Root"])
-async def read_root():
-    """ Basic root endpoint to check if the API is running. """
-    return {"message": "Admin Panel API is running!"}
-
 """
 Centralized router inclusion:
 - CRUD routes for articles are included from admin_app/routes/articles.py.

@@ -36,10 +36,17 @@ This file contains the list of tasks for developing the static site generator wi
 *   [x] Configure MinIO connection (using `boto3`).
 *   [x] Implement image upload endpoint (`/admin/images`):
     *   [x] POST `/admin/images`: Accepts a file, uploads to MinIO, returns image URL (via Caddy proxy).
-*   [ ] Add JWT authentication/authorization for the admin panel (FastAPI):
-    *   [ ] POST /admin/login — issue JWT on login/password
-    *   [ ] Require JWT for all protected endpoints
-    *   [ ] Integrate with Swagger UI (Authorize button)
+*   [x] Add JWT authentication/authorization for the admin panel (FastAPI):
+    *   [x] POST /admin/login — issue JWT on login/password (plain, no hash)
+    *   [x] Require JWT for all protected endpoints (API and UI)
+    *   [x] Integrate with Swagger UI (Authorize button)
+    *   [x] Use JWT in cookie for UI, in header for API
+    *   [x] Protect UI routes via cookie JWT (redirect to login if not authorized)
+    *   [x] Add logout endpoint (clears cookie)
+    *   [x] Add root redirect: / → /admin/articles (if logged in) or /admin/login (if not)
+    *   [x] Remove conflicting API root route ("/")
+    *   [x] Document async requirement for all UI routes using MongoDB
+    *   [x] Refactor all UI routes to async def and use await with motor
 *   [ ] (Separate task) Switch password storage to hash (passlib) after basic JWT auth is ready.
 *   [ ] (Optional) Implement article versioning on update.
 *   [ ] Add logging.
@@ -55,12 +62,17 @@ This file contains the list of tasks for developing the static site generator wi
 
 ## Phase 2.6: Admin Panel UI (Server-side, FastAPI + Jinja2)
 
-*   [ ] Implement server-side admin interface (FastAPI + Jinja2):
-    *   [ ] Login page (form, JWT in cookie or session)
-    *   [ ] Logout endpoint
-    *   [ ] Article list page (CRUD)
-    *   [ ] Article view page (with "Edit" button)
-    *   [ ] Article delete endpoint (POST, CSRF)
+*   [x] Implement server-side admin interface (FastAPI + Jinja2):
+    *   [x] Login page (form, JWT in cookie or session)
+    *   [x] Logout endpoint
+    *   [x] Article list page (CRUD)
+    *   [x] Article view page (with "Edit" button)
+    *   [x] Article delete endpoint (POST, CSRF)
+    *   [x] Root redirect logic (see above)
+    *   [x] Async refactor for all UI routes
+    *   [x] Protect all UI routes via JWT in cookie
+    *   [x] Remove API root route conflict
+    *   [x] Document async requirement for UI
 *   [ ] Implement article editor UI (separate task, not in scope for now)
 
 ## Phase 3: Static Site Generator Development (Generator)

@@ -80,6 +80,8 @@ services:
       - ./static_output:/srv/static_output:ro
       - caddy_data:/data
       - caddy_config:/config
+    environment:
+      - CADDY_DOMAIN_NAME=${CADDY_DOMAIN_NAME}
     depends_on:
       - admin_app
     networks:

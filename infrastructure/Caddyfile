@@ -7,14 +7,6 @@
 	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory # Use Let's Encrypt staging for testing
 }
 
-:80 {
-	import site_common
-}
-
-{$CADDY_DOMAIN_NAME} {
-	import site_common
-}
-
 (site_common) {
 	# Enable compression
 	encode gzip zstd
@@ -53,6 +45,10 @@
 		output stdout
 		format console
 	}
+}
+
+{$CADDY_DOMAIN_NAME:80} {
+	import site_common
 }
 
 # You can add other sites or configurations here if needed 

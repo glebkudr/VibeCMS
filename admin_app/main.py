@@ -3,6 +3,7 @@ import os
 from motor.motor_asyncio import AsyncIOMotorClient
 from contextlib import asynccontextmanager
 import logging # Import logging
+from fastapi.templating import Jinja2Templates
 
 """
 Architectural decision:
@@ -66,10 +67,12 @@ Centralized router inclusion:
 from admin_app.routes import articles
 from admin_app.routes import images
 from admin_app.routes import auth
+from admin_app.routes import admin_ui
 
-app.include_router(auth.router, prefix="/admin", tags=["Auth"])
-app.include_router(articles.router, prefix="/admin", tags=["Articles"])
-app.include_router(images.router, prefix="/admin", tags=["Images"])
+app.include_router(auth.router, prefix="/api/admin", tags=["Auth"])
+app.include_router(articles.router, prefix="/api/admin", tags=["Articles"])
+app.include_router(images.router, prefix="/api/admin", tags=["Images"])
+app.include_router(admin_ui.router)
 
 # Example usage of the client in endpoints:
 # from fastapi import Request
@@ -79,6 +82,8 @@ app.include_router(images.router, prefix="/admin", tags=["Images"])
 #     if not db:
 #         raise HTTPException(status_code=503, detail="Database not available")
 #     # ... use db ...
+
+templates = Jinja2Templates(directory="admin_app/templates")
 
 if __name__ == "__main__":
     import uvicorn

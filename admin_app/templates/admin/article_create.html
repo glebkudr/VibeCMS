@@ -1,0 +1,32 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Create Article — Admin Panel{% endblock %}
+
+{% block content %}
+<h1>Create New Article</h1>
+{% if error %}
+    <div class="flash">{{ error }}</div>
+{% endif %}
+<form method="post" action="/admin/articles/create">
+    <div style="margin-bottom: 1rem;">
+        <label for="title">Title:</label><br>
+        <input type="text" id="title" name="title" required style="width: 100%; padding: 0.5rem;">
+    </div>
+    <div style="margin-bottom: 1rem;">
+        <label for="slug">Slug:</label><br>
+        <input type="text" id="slug" name="slug" required style="width: 100%; padding: 0.5rem;">
+    </div>
+    <div style="margin-bottom: 1rem;">
+        <label for="content_md">Content (Markdown):</label><br>
+        <textarea id="content_md" name="content_md" rows="10" required style="width: 100%; padding: 0.5rem;"></textarea>
+    </div>
+    <div style="margin-bottom: 1rem;">
+        <label for="status">Status:</label><br>
+        <select id="status" name="status" style="width: 100%; padding: 0.5rem;">
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+        </select>
+    </div>
+    <button type="submit" class="btn">Create Article</button>
+</form>
+{% endblock %} 

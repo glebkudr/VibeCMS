@@ -17,7 +17,7 @@ ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 
 # OAuth2 scheme for Swagger UI ("Authorize" button)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/admin/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/admin/login")
 
 class Token(BaseModel):
     """Response model for JWT token."""

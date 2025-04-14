@@ -10,6 +10,8 @@ This project implements a static website generator with a web-based admin panel 
     *   Allows creating and editing articles in Markdown format.
     *   Stores articles, their status (`draft`, `published`), and versions in a MongoDB database.
     *   Handles image uploads and saves them to a MinIO (S3-compatible) storage.
+    *   **API endpoints are available under `/api/admin/...` (e.g., `/api/admin/login`, `/api/admin/articles`).**
+    *   **Server-side HTML admin UI is available under `/admin/...` (e.g., `/admin/login`, `/admin/articles`).**
 *   **Static Site Generator (Python Script)**:
     *   Fetches all articles marked as `published` from MongoDB.
     *   Converts Markdown content to HTML using `markdown-it-py`.
@@ -69,6 +71,10 @@ my_project/
 *   **Containerization**: Docker, Docker Compose
 *   **Python Libraries**: `fastapi`, `uvicorn`, `pydantic`, `motor` (async MongoDB driver) or `pymongo`, `boto3` (for S3), `python-multipart` (for file uploads), `jinja2`, `markdown-it-py`.
 
+**Important:**
+- All admin panel (FastAPI) routes that interact with MongoDB **must be implemented as asynchronous handlers** (`async def`).
+- This is required for correct operation with the Motor async MongoDB driver and to avoid runtime errors.
+
 ## 4. Workflow Scenario
 
 1.  An authorized user accesses the admin panel (e.g., `https://example.com/admin`).
@@ -93,6 +99,13 @@ See [infrastructure/DEV_SETUP.md](infrastructure/DEV_SETUP.md) for detailed deve
 2.  **Configure Environment Variables**: Copy `.env.example` to `.env` and fill in the necessary values (database URI, MinIO credentials, domain name for Caddy if using HTTPS, etc.).
 3.  **Build and Run Containers**: Use `docker-compose up --build -d` to start MongoDB, MinIO, Caddy, and the Admin application.
 4.  **Access Admin**: Navigate to the admin URL defined by the Caddy proxy (e.g., `http://localhost/admin` or `https://yourdomain.com/admin`).
+    - **API endpoints:**
+        - `POST http://localhost/api/admin/login` — obtain JWT token (for API/Swagger)
+        - `GET http://localhost/api/admin/articles` — list articles (JSON)
+        - `POST http://localhost/api/admin/images` — upload image (JSON)
+    - **Admin UI (HTML):**
+        - `http://localhost/admin/login` — login page (form, sets cookie)
+        - `http://localhost/admin/articles` — article list (HTML)
 5.  **Generate Static Site**: Run the generation script (potentially inside the generator container or locally if dependencies are installed): `python generator/generate.py`.
 6.  **Access Public Site**: Navigate to the main URL (e.g., `http://localhost` or `https://yourdomain.com`).
 

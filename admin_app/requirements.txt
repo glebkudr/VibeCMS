@@ -3,6 +3,8 @@ uvicorn[standard]
 pydantic
 pydantic-settings
 
+jinja2
+
 # Database
 motor # Async MongoDB driver
 

@@ -1,0 +1,21 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Login — Admin Panel{% endblock %}
+
+{% block content %}
+<h1>Admin Login</h1>
+{% if error %}
+    <div class="flash">{{ error }}</div>
+{% endif %}
+<form method="post" action="/admin/login">
+    <div style="margin-bottom: 1rem;">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" required autofocus style="width: 100%; padding: 0.5rem;">
+    </div>
+    <div style="margin-bottom: 1rem;">
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" required style="width: 100%; padding: 0.5rem;">
+    </div>
+    <button type="submit" class="btn">Login</button>
+</form>
+{% endblock %} 

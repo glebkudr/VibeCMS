@@ -17,6 +17,7 @@ from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
 from admin_app.models import ArticleCreate, ArticleRead, ArticleUpdate, ArticleInDB, ArticleStatus
+from admin_app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,8 @@ def to_article_read(doc: dict) -> ArticleRead:
 )
 async def create_article(
     article: ArticleCreate,
-    db = Depends(get_db)
+    db = Depends(get_db),
+    user = Depends(get_current_user)
 ):
     """
     Creates a new article.
@@ -95,7 +97,8 @@ async def create_article(
 async def list_articles(
     db = Depends(get_db),
     limit: int = Query(20, ge=1, le=100, description="Number of articles to return"),
-    offset: int = Query(0, ge=0, description="Number of articles to skip")
+    offset: int = Query(0, ge=0, description="Number of articles to skip"),
+    user = Depends(get_current_user)
 ):
     """Retrieves a list of articles with pagination."""
     try:
@@ -115,7 +118,8 @@ async def list_articles(
 )
 async def get_article(
     article_id: str,
-    db = Depends(get_db)
+    db = Depends(get_db),
+    user = Depends(get_current_user)
 ):
     """Retrieves a specific article by its ID."""
     try:
@@ -143,7 +147,8 @@ async def get_article(
 async def update_article(
     article_id: str,
     article_update: ArticleUpdate,
-    db = Depends(get_db)
+    db = Depends(get_db),
+    user = Depends(get_current_user)
 ):
     """
     Updates an article by its ID.
@@ -214,7 +219,8 @@ async def update_article(
 )
 async def delete_article(
     article_id: str,
-    db = Depends(get_db)
+    db = Depends(get_db),
+    user = Depends(get_current_user)
 ):
     """Deletes an article by its ID."""
     try:

@@ -96,4 +96,10 @@ See [infrastructure/DEV_SETUP.md](infrastructure/DEV_SETUP.md) for detailed deve
 5.  **Generate Static Site**: Run the generation script (potentially inside the generator container or locally if dependencies are installed): `python generator/generate.py`.
 6.  **Access Public Site**: Navigate to the main URL (e.g., `http://localhost` or `https://yourdomain.com`).
 
-*(Detailed setup instructions will depend on the final `docker-compose.yml`, `Caddyfile`, and script configurations.)* 
+*(Detailed setup instructions will depend on the final `docker-compose.yml`, `Caddyfile`, and script configurations.)*
+
+## Design Documents
+
+- [JWT Authentication Design](design/jwt_auth_design.md) — authentication and authorization for the admin panel using JWT (in English)
+- [Admin Panel UI Design](design/admin_ui_design.md) — web interface (SPA) for admin panel (in English)
+- [Admin Panel UI Design (Jinja2/FastAPI)](design/admin_ui_jinja_design.md) — server-side web interface for admin panel (in English) 

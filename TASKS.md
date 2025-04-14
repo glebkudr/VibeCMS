@@ -36,9 +36,32 @@ This file contains the list of tasks for developing the static site generator wi
 *   [x] Configure MinIO connection (using `boto3`).
 *   [x] Implement image upload endpoint (`/admin/images`):
     *   [x] POST `/admin/images`: Accepts a file, uploads to MinIO, returns image URL (via Caddy proxy).
-*   [ ] Add basic authentication/authorization for the admin panel (e.g., HTTP Basic Auth or JWT).
+*   [ ] Add JWT authentication/authorization for the admin panel (FastAPI):
+    *   [ ] POST /admin/login — issue JWT on login/password
+    *   [ ] Require JWT for all protected endpoints
+    *   [ ] Integrate with Swagger UI (Authorize button)
+*   [ ] (Separate task) Switch password storage to hash (passlib) after basic JWT auth is ready.
 *   [ ] (Optional) Implement article versioning on update.
 *   [ ] Add logging.
+
+## Phase 2.5: Admin Panel UI (SPA)
+
+*   [ ] Implement SPA admin interface:
+    *   [ ] Login page (JWT)
+    *   [ ] Logout functionality
+    *   [ ] Article list page (CRUD)
+    *   [ ] Article view page (with "Edit" button)
+*   [ ] Implement article editor UI (separate task, not in scope for now)
+
+## Phase 2.6: Admin Panel UI (Server-side, FastAPI + Jinja2)
+
+*   [ ] Implement server-side admin interface (FastAPI + Jinja2):
+    *   [ ] Login page (form, JWT in cookie or session)
+    *   [ ] Logout endpoint
+    *   [ ] Article list page (CRUD)
+    *   [ ] Article view page (with "Edit" button)
+    *   [ ] Article delete endpoint (POST, CSRF)
+*   [ ] Implement article editor UI (separate task, not in scope for now)
 
 ## Phase 3: Static Site Generator Development (Generator)
 

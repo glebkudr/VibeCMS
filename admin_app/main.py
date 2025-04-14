@@ -65,7 +65,9 @@ Centralized router inclusion:
 """
 from admin_app.routes import articles
 from admin_app.routes import images
+from admin_app.routes import auth
 
+app.include_router(auth.router, prefix="/admin", tags=["Auth"])
 app.include_router(articles.router, prefix="/admin", tags=["Articles"])
 app.include_router(images.router, prefix="/admin", tags=["Images"])
 

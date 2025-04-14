@@ -13,4 +13,7 @@ boto3
 python-multipart
 
 # Environment variable loading
-python-dotenv 
+python-dotenv
+
+# JWT support
+python-jose[cryptography] 

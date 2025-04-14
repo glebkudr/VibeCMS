@@ -6,6 +6,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
 from pydantic import BaseModel
 
 from ..core.storage import upload_file_to_s3
+from admin_app.core.auth import get_current_user
 # We will add authentication dependency later
 # from ..core.security import get_current_username
 
@@ -19,13 +20,13 @@ class ImageUploadResponse(BaseModel):
 @router.post(
     "/images",
     response_model=ImageUploadResponse,
-    # dependencies=[Depends(get_current_username)], # Uncomment when auth is ready
     status_code=status.HTTP_201_CREATED,
     summary="Upload an image",
     description="Uploads an image file to the S3 storage and returns its filename and URL."
 )
 async def upload_image(
-    file: UploadFile = File(..., description="Image file to upload")
+    file: UploadFile = File(..., description="Image file to upload"),
+    user = Depends(get_current_user)
 ):
     """Handles image uploads."""
     # Generate a unique filename to avoid conflicts

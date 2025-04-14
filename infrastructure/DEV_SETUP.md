@@ -51,8 +51,8 @@ To run with your own domain and enable HTTPS:
 ## 5. Accessing the Services
 
 - **Admin Panel (Swagger UI):**
-  - Dev: [http://localhost/admin/docs](http://localhost/admin/docs)
-  - Prod: [https://yourdomain.com/admin/docs](https://yourdomain.com/admin/docs)
+  - Dev: [http://localhost:8000/docs](http://localhost:8000/docs)
+  - Prod: [https://yourdomain.com/admin/docs](https://yourdomain.com/admin/docs) *(see note below)*
 - **MinIO Console:**
   - Dev: [http://localhost:9001](http://localhost:9001)
   - Prod: [https://yourdomain.com:9001](https://yourdomain.com:9001) (if port is open)
@@ -111,8 +111,9 @@ CADDY_HTTPS_PORT=443
 
 ## 8. Notes
 - Do not commit actual secrets in `.env.dev` to version control (`.gitignore` should prevent this).
-- Use Swagger UI (`/admin/docs`) for testing API endpoints like image uploads.
-- For production, ensure your domain's DNS is set up correctly and ports 80/443 are open.
+- Use Swagger UI (`/docs` on port 8000) for testing API endpoints like image uploads in development mode.
+- For production, if you want Swagger UI at `/admin/docs`, set `root_path="/admin"` in your FastAPI app.
+- Ensure your domain's DNS is set up correctly and ports 80/443 are open.
 
 ---
 

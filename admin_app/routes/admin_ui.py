@@ -7,6 +7,7 @@ from datetime import timedelta, datetime
 import os
 from admin_app.models import ArticleRead, ArticleStatus
 from bson import ObjectId
+from admin_app.core.admin_password import verify_admin_password, change_admin_password
 
 router = APIRouter()
 templates = Jinja2Templates(directory="admin_app/templates")
@@ -34,7 +35,9 @@ async def login_get(request: Request):
 
 @router.post("/admin/login", response_class=HTMLResponse)
 async def login_post(request: Request, response: Response, username: str = Form(...), password: str = Form(...)):
-    if not authenticate_user(username, password):
+    db = request.app.state.mongo_db
+    # MongoDB motor: нельзя использовать 'if not db', только 'if db is None' (см. design/projectrules.md)
+    if db is None or username != "admin" or not await verify_admin_password(db, password):
         return templates.TemplateResponse("admin/login.html", {"request": request, "error": "Invalid username or password"}, status_code=401)
     access_token = create_access_token({"sub": username}, expires_delta=timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES))
     response = RedirectResponse(url="/admin/articles", status_code=status.HTTP_302_FOUND)
@@ -137,4 +140,42 @@ async def root(request: Request):
     user = get_current_user_ui(request)
     if isinstance(user, RedirectResponse):
         return RedirectResponse(url="/admin/login", status_code=302)
-    return RedirectResponse(url="/admin/articles", status_code=302) 
+    return RedirectResponse(url="/admin/articles", status_code=302)
+
+@router.get("/admin/change-password", response_class=HTMLResponse)
+async def change_password_get(request: Request, user: str = Depends(get_current_user_ui)):
+    if isinstance(user, RedirectResponse):
+        return user
+    return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": None, "success": None})
+
+@router.post("/admin/change-password", response_class=HTMLResponse)
+async def change_password_post(request: Request, current_password: str = Form(...), new_password: str = Form(...), user: str = Depends(get_current_user_ui)):
+    if isinstance(user, RedirectResponse):
+        return user
+    db = request.app.state.mongo_db
+    # MongoDB motor: нельзя использовать 'if not db', только 'if db is None' (см. design/projectrules.md)
+    if db is None:
+        return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": "Database not available", "success": None}, status_code=500)
+    ok = await change_admin_password(db, current_password, new_password)
+    if not ok:
+        return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": "Current password is incorrect", "success": None}, status_code=401)
+    return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": None, "success": "Password changed successfully"})
+
+@router.get("/admin/settings", response_class=HTMLResponse)
+async def settings_get(request: Request, user: str = Depends(get_current_user_ui)):
+    if isinstance(user, RedirectResponse):
+        return user
+    return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": None, "success": None, "title": "Settings"})
+
+@router.post("/admin/settings", response_class=HTMLResponse)
+async def settings_post(request: Request, current_password: str = Form(...), new_password: str = Form(...), user: str = Depends(get_current_user_ui)):
+    if isinstance(user, RedirectResponse):
+        return user
+    db = request.app.state.mongo_db
+    # MongoDB motor: нельзя использовать 'if not db', только 'if db is None' (см. design/projectrules.md)
+    if db is None:
+        return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": "Database not available", "success": None, "title": "Settings"}, status_code=500)
+    ok = await change_admin_password(db, current_password, new_password)
+    if not ok:
+        return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": "Current password is incorrect", "success": None, "title": "Settings"}, status_code=401)
+    return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": None, "success": "Password changed successfully", "title": "Settings"}) 

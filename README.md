@@ -115,4 +115,15 @@ See [infrastructure/DEV_SETUP.md](infrastructure/DEV_SETUP.md) for detailed deve
 
 - [JWT Authentication Design](design/jwt_auth_design.md) — authentication and authorization for the admin panel using JWT (in English)
 - [Admin Panel UI Design](design/admin_ui_design.md) — web interface (SPA) for admin panel (in English)
-- [Admin Panel UI Design (Jinja2/FastAPI)](design/admin_ui_jinja_design.md) — server-side web interface for admin panel (in English) 
+- [Admin Panel UI Design (Jinja2/FastAPI)](design/admin_ui_jinja_design.md) — server-side web interface for admin panel (in English)
+
+## Admin Password Management
+
+- On first launch, the admin password is taken from the environment variable (`ADMIN_PASSWORD`).
+- After changing the password (via UI or API), the new password is stored as a hash in MongoDB and only the hash is used for authentication.
+- If the hash is deleted from the database, the system falls back to using the environment variable password.
+- Password can be changed via:
+  - The admin UI: "Change Password" link on the login page
+  - The API: `POST /api/admin/change-password` with `{ "current_password": ..., "new_password": ... }`
+- Changing the password always requires entering the current password.
+- For security, set a strong initial password in the environment variable and change it after first login. 

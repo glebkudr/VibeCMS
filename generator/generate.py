@@ -5,6 +5,7 @@ from typing import List
 from motor.motor_asyncio import AsyncIOMotorClient
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markdown_it import MarkdownIt
+import shutil
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -61,6 +62,16 @@ def render_article_html(article: dict) -> str:
     )
     return html
 
+def copy_static_assets():
+    """
+    Copy static assets (CSS, JS) to static_output.
+    """
+    src = os.path.join(TEMPLATES_DIR, 'style.css')
+    dst = os.path.join(STATIC_OUTPUT, 'style.css')
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    shutil.copyfile(src, dst)
+    logger.info(f"Copied static asset: {dst}")
+
 async def generate():
     """
     Main generation logic: fetch articles, render, and write HTML files.
@@ -78,6 +89,7 @@ async def generate():
         with open(out_path, 'w', encoding='utf-8') as f:
             f.write(html)
         logger.info(f"Generated {out_path}")
+    copy_static_assets()
     logger.info("Static site generation complete.")
 
 if __name__ == '__main__':

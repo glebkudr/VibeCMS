@@ -73,19 +73,50 @@ This file contains the list of tasks for developing the static site generator wi
 
 ## Phase 3: Static Site Generator Development (Generator)
 
-*   [ ] Configure MongoDB connection.
-*   [ ] Configure Jinja2 for templates in `generator/templates/`.
-*   [ ] Create base templates (`base.html`, `article.html`).
-*   [ ] Implement main logic in `generate.py`:
-    *   [ ] Fetch all articles with status `published` from MongoDB.
-    *   [ ] Clear the `static_output` directory before generation.
-    *   [ ] For each article:
-        *   [ ] Convert `content_md` to HTML using `markdown-it-py`.
-        *   [ ] Render HTML using Jinja2 template (`article.html`).
-        *   [ ] Save the result to `static_output/{slug}/index.html`.
+*   [x] Configure MongoDB connection.
+*   [x] Configure Jinja2 for templates in `generator/templates/`.
+*   [x] Create base templates (`base.html`, `article.html`).
+*   [x] Implement main logic in `generate.py`:
+    *   [x] Fetch all articles with status `published` from MongoDB.
+    *   [x] Clear the `static_output` directory before generation.
+    *   [x] For each article:
+        *   [x] Convert `content_md` to HTML using `markdown-it-py`.
+        *   [x] Render HTML using Jinja2 template (`article.html`).
+        *   [x] Save the result to `static_output/{slug}/index.html`.
     *   [ ] (Optional) Generate an index page with a list of articles.
-    *   [ ] (Optional) Copy static assets (CSS, JS) to `static_output`.
-*   [ ] Add logging to the generation script.
+    *   [x] (Optional) Copy static assets (CSS, JS) to `static_output`.
+*   [x] Add logging to the generation script.
+*   [x] Add button in admin panel to trigger static site generation
+*   [x] Add base CSS style for static site
+
+## Editor.js Integration (Block Editor with Markdown & MinIO)
+
+*   [ ] Research and select Editor.js plugins:
+    *   [ ] Plugin for Markdown import/export
+    *   [ ] Image Tool with custom backend support
+*   [ ] Add Editor.js to article create/edit page in admin panel
+    *   [ ] Install Editor.js and required plugins
+    *   [ ] Integrate Editor.js into the form
+    *   [ ] Load article from Markdown (Markdown → Editor.js JSON)
+    *   [ ] Save article as Markdown (Editor.js JSON → Markdown)
+*   [ ] Integrate image upload to MinIO:
+    *   [ ] Configure Editor.js Image Tool to upload images to backend
+    *   [ ] Implement FastAPI endpoint for image upload to MinIO
+    *   [ ] Return Caddy-proxied image URL to Editor.js
+    *   [ ] Display uploaded images in the editor
+*   [ ] Migrate existing articles:
+    *   [ ] Convert Markdown articles to Editor.js JSON for editing
+    *   [ ] Convert Editor.js JSON back to Markdown for storage/generation
+*   [ ] UI/UX improvements:
+    *   [ ] Add buttons/instructions for inserting images and blocks
+    *   [ ] Provide fallback (textarea) if Editor.js is not supported
+*   [ ] Testing:
+    *   [ ] Test create/edit/save/generate for articles with various content
+    *   [ ] Test image upload and display
+    *   [ ] Test Markdown ↔ Editor.js JSON conversion
+*   [ ] Documentation:
+    *   [ ] Document new editor usage for admin users
+    *   [ ] Document image upload API
 
 ### Multilingual & Translation Pipeline (LLM)
 
@@ -104,6 +135,7 @@ This file contains the list of tasks for developing the static site generator wi
     *   [ ] (Optional) Generate index.html and sitemap for each language
 *   [ ] Test translation pipeline and multilingual static generation
 *   [ ] Update documentation and .env.example for LLM API and multilingual support
+
 
 ## Phase 4: Testing and Refinement
 

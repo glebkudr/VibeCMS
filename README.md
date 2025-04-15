@@ -116,6 +116,7 @@ See [infrastructure/DEV_SETUP.md](infrastructure/DEV_SETUP.md) for detailed deve
 - [JWT Authentication Design](design/jwt_auth_design.md) — authentication and authorization for the admin panel using JWT (in English)
 - [Admin Panel UI Design](design/admin_ui_design.md) — web interface (SPA) for admin panel (in English)
 - [Admin Panel UI Design (Jinja2/FastAPI)](design/admin_ui_jinja_design.md) — server-side web interface for admin panel (in English)
+- [Editor.js Integration Design](design/editorjs_integration_design.md) — architecture and plan for block editor with Markdown and MinIO image support (in English)
 
 ## Admin Password Management
 

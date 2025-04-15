@@ -1,0 +1,48 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Edit Article: {{ article.title | e }} — Admin Panel{% endblock %}
+
+{% block content %}
+<h1>Edit Article: {{ article.title | e }}</h1>
+
+{% if error %}
+    <div class="flash flash-error">{{ error }}</div>
+{% endif %}
+{% if success %}
+    <div class="flash flash-success">{{ success }}</div>
+{% endif %}
+
+{# Form points to the new POST endpoint #}
+<form method="post" action="/admin/articles/{{ article.id }}/edit" id="article-form">
+    <div style="margin-bottom: 1rem;">
+        <label for="title">Title:</label><br>
+        {# Pre-fill value #}
+        <input type="text" id="title" name="title" value="{{ article.title | e }}" required style="width: 100%; padding: 0.5rem;">
+    </div>
+    <div style="margin-bottom: 1rem;">
+        <label for="slug">Slug:</label><br>
+        {# Pre-fill value #}
+        <input type="text" id="slug" name="slug" value="{{ article.slug | e }}" required style="width: 100%; padding: 0.5rem;">
+    </div>
+    <div style="margin-bottom: 1rem;">
+        <label for="editor">Content (Markdown):</label><br>
+        {# Div for Milkdown #}
+        <div id="editor" style="border: 1px solid #ccc; border-radius: 5px; min-height: 300px; background-color: #fff;"></div>
+        {# Hidden input to store the final Markdown content #}
+        <input type="hidden" id="content_md_hidden" name="content_md">
+        {# Hidden textarea to pass initial markdown to Milkdown JS #}
+        <textarea id="initial_markdown" style="display: none;">{{ article.content_md | e }}</textarea>
+    </div>
+    <div style="margin-bottom: 1rem;">
+        <label for="status">Status:</label><br>
+        <select id="status" name="status" style="width: 100%; padding: 0.5rem;">
+            {# Pre-select the current status #}
+            <option value="draft" {% if article.status == 'draft' %}selected{% endif %}>Draft</option>
+            <option value="published" {% if article.status == 'published' %}selected{% endif %}>Published</option>
+        </select>
+    </div>
+    <button type="submit" class="btn">Update Article</button>
+    <a href="/admin/articles/{{ article.id }}" style="margin-left: 1rem;">Cancel</a>
+</form>
+{# Milkdown initialization is handled by the script loaded via vite_tags #}
+{% endblock %} 

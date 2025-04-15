@@ -43,8 +43,8 @@ services:
       dockerfile: admin_app/Dockerfile
     ports:
       - "8000:8000"
-    volumes:
-      - .:/app
+    # volumes:
+    #   - .:/app  # Temporarily commented out to allow static files from build step to be visible
     environment:
       MONGO_URI: mongodb://mongo:27017/mydatabase
       MONGO_DATABASE: mydatabase

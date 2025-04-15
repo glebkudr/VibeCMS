@@ -19,6 +19,10 @@
         th { background: #f0f0f0; }
     </style>
     {% block head %}{% endblock %}
+    {# Add Vite assets here, including CSS from manifest #}
+    {% block vite_assets %}
+        {{ vite_tags('src/main.ts') | safe }}
+    {% endblock %}
 </head>
 <body>
     <div class="container">

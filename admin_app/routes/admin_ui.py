@@ -11,11 +11,11 @@ from admin_app.core.admin_password import verify_admin_password, change_admin_pa
 import asyncio
 import sys # Added for subprocess
 import logging
+from admin_app.main import get_templates
 
 logger = logging.getLogger(__name__) # Added for logging
 
 router = APIRouter()
-templates = Jinja2Templates(directory="admin_app/templates")
 
 COOKIE_NAME = "admin_jwt"
 COOKIE_MAX_AGE = JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
@@ -35,14 +35,21 @@ def get_current_user_ui(request: Request):
         return RedirectResponse(url="/admin/login", status_code=302)
 
 @router.get("/admin/login", response_class=HTMLResponse)
-async def login_get(request: Request):
+async def login_get(request: Request, templates: Jinja2Templates = Depends(get_templates)):
     return templates.TemplateResponse("admin/login.html", {"request": request, "error": None})
 
 @router.post("/admin/login", response_class=HTMLResponse)
-async def login_post(request: Request, response: Response, username: str = Form(...), password: str = Form(...)):
+async def login_post(
+    request: Request,
+    response: Response,
+    username: str = Form(...),
+    password: str = Form(...),
+    templates: Jinja2Templates = Depends(get_templates) # Add dependency
+):
     db = request.app.state.mongo_db
     # MongoDB motor: нельзя использовать 'if not db', только 'if db is None' (см. design/projectrules.md)
     if db is None or username != "admin" or not await verify_admin_password(db, password):
+        # Use the injected templates instance
         return templates.TemplateResponse("admin/login.html", {"request": request, "error": "Invalid username or password"}, status_code=401)
     access_token = create_access_token({"sub": username}, expires_delta=timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES))
     response = RedirectResponse(url="/admin/articles", status_code=status.HTTP_302_FOUND)
@@ -64,7 +71,11 @@ async def logout(response: Response):
     return response
 
 @router.get("/admin/articles", response_class=HTMLResponse)
-async def articles_list(request: Request, user: str = Depends(get_current_user_ui)):
+async def articles_list(
+    request: Request,
+    user: str = Depends(get_current_user_ui),
+    templates: Jinja2Templates = Depends(get_templates) # Add dependency
+):
     if isinstance(user, RedirectResponse):
         return user
     db = request.app.state.mongo_db
@@ -79,13 +90,25 @@ async def articles_list(request: Request, user: str = Depends(get_current_user_u
     return templates.TemplateResponse("admin/articles_list.html", {"request": request, "articles": articles, "user": user})
 
 @router.get("/admin/articles/create", response_class=HTMLResponse)
-async def article_create_get(request: Request, user: str = Depends(get_current_user_ui)):
+async def article_create_get(
+    request: Request,
+    user: str = Depends(get_current_user_ui),
+    templates: Jinja2Templates = Depends(get_templates) # Add dependency
+):
     if isinstance(user, RedirectResponse):
         return user
     return templates.TemplateResponse("admin/article_create.html", {"request": request, "error": None, "user": user})
 
 @router.post("/admin/articles/create", response_class=HTMLResponse)
-async def article_create_post(request: Request, title: str = Form(...), slug: str = Form(...), content_md: str = Form(...), status: str = Form("draft"), user: str = Depends(get_current_user_ui)):
+async def article_create_post(
+    request: Request,
+    title: str = Form(...),
+    slug: str = Form(...),
+    content_md: str = Form(...),
+    status: str = Form("draft"),
+    user: str = Depends(get_current_user_ui),
+    templates: Jinja2Templates = Depends(get_templates) # Add dependency
+):
     if isinstance(user, RedirectResponse):
         return user
     db = request.app.state.mongo_db
@@ -108,7 +131,12 @@ async def article_create_post(request: Request, title: str = Form(...), slug: st
         return templates.TemplateResponse("admin/article_create.html", {"request": request, "error": str(e), "user": user}, status_code=500)
 
 @router.get("/admin/articles/{article_id}", response_class=HTMLResponse)
-async def article_view(request: Request, article_id: str, user: str = Depends(get_current_user_ui)):
+async def article_view(
+    request: Request,
+    article_id: str,
+    user: str = Depends(get_current_user_ui),
+    templates: Jinja2Templates = Depends(get_templates) # Add dependency
+):
     if isinstance(user, RedirectResponse):
         return user
     db = request.app.state.mongo_db
@@ -148,13 +176,23 @@ async def root(request: Request):
     return RedirectResponse(url="/admin/articles", status_code=302)
 
 @router.get("/admin/change-password", response_class=HTMLResponse)
-async def change_password_get(request: Request, user: str = Depends(get_current_user_ui)):
+async def change_password_get(
+    request: Request,
+    user: str = Depends(get_current_user_ui),
+    templates: Jinja2Templates = Depends(get_templates) # Add dependency
+):
     if isinstance(user, RedirectResponse):
         return user
     return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": None, "success": None})
 
 @router.post("/admin/change-password", response_class=HTMLResponse)
-async def change_password_post(request: Request, current_password: str = Form(...), new_password: str = Form(...), user: str = Depends(get_current_user_ui)):
+async def change_password_post(
+    request: Request,
+    current_password: str = Form(...),
+    new_password: str = Form(...),
+    user: str = Depends(get_current_user_ui),
+    templates: Jinja2Templates = Depends(get_templates) # Add dependency
+):
     if isinstance(user, RedirectResponse):
         return user
     db = request.app.state.mongo_db
@@ -167,13 +205,23 @@ async def change_password_post(request: Request, current_password: str = Form(..
     return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": None, "success": "Password changed successfully"})
 
 @router.get("/admin/settings", response_class=HTMLResponse)
-async def settings_get(request: Request, user: str = Depends(get_current_user_ui)):
+async def settings_get(
+    request: Request,
+    user: str = Depends(get_current_user_ui),
+    templates: Jinja2Templates = Depends(get_templates) # Add dependency
+):
     if isinstance(user, RedirectResponse):
         return user
     return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": None, "success": None, "title": "Settings"})
 
 @router.post("/admin/settings", response_class=HTMLResponse)
-async def settings_post(request: Request, current_password: str = Form(...), new_password: str = Form(...), user: str = Depends(get_current_user_ui)):
+async def settings_post(
+    request: Request,
+    current_password: str = Form(...),
+    new_password: str = Form(...),
+    user: str = Depends(get_current_user_ui),
+    templates: Jinja2Templates = Depends(get_templates) # Add dependency
+):
     if isinstance(user, RedirectResponse):
         return user
     db = request.app.state.mongo_db
@@ -229,4 +277,134 @@ async def trigger_generation(request: Request, user: str = Depends(get_current_u
     # Note: This means the response returns immediately, and generation happens async.
     # For better feedback, consider using background tasks or a task queue.
     asyncio.create_task(run_generator_script())
-    return {"message": "Static site generation process started."} 
+    return {"message": "Static site generation process started."}
+
+@router.get("/admin/articles/{article_id}/edit", response_class=HTMLResponse)
+async def article_edit_get(
+    request: Request,
+    article_id: str,
+    user: str = Depends(get_current_user_ui),
+    templates: Jinja2Templates = Depends(get_templates)
+):
+    """Displays the form to edit an existing article."""
+    if isinstance(user, RedirectResponse):
+        return user
+    db = request.app.state.mongo_db
+    if db is None:
+        # Handle error appropriately, maybe redirect or show error page
+        raise HTTPException(status_code=503, detail="Database not available")
+
+    try:
+        oid = ObjectId(article_id)
+        doc = await db.articles.find_one({"_id": oid})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Article not found")
+
+        # Prepare article data for the template
+        article_data = {
+            "id": str(doc["_id"]),
+            "title": doc.get("title", ""),
+            "slug": doc.get("slug", ""),
+            "content_md": doc.get("content_md", ""),
+            "status": doc.get("status", ArticleStatus.DRAFT.value), # Ensure status is a string value
+            # Add other fields if needed by the template
+        }
+
+        return templates.TemplateResponse(
+            "admin/article_edit.html",
+            {
+                "request": request,
+                "article": article_data,
+                "error": None,
+                "user": user
+            }
+        )
+    except ValueError: # Catch invalid ObjectId format
+        raise HTTPException(status_code=400, detail="Invalid article ID format")
+    except Exception as e:
+        logger.error(f"Error fetching article {article_id} for edit: {e}", exc_info=True)
+        # Handle error appropriately
+        raise HTTPException(status_code=500, detail="Error fetching article for editing")
+
+@router.post("/admin/articles/{article_id}/edit", response_class=HTMLResponse)
+async def article_edit_post(
+    request: Request,
+    article_id: str,
+    title: str = Form(...),
+    slug: str = Form(...),
+    content_md: str = Form(...), # This comes from the hidden input updated by Milkdown
+    status: str = Form(...),
+    user: str = Depends(get_current_user_ui),
+    templates: Jinja2Templates = Depends(get_templates)
+):
+    """Handles the submission of the article edit form."""
+    if isinstance(user, RedirectResponse):
+        return user
+    db = request.app.state.mongo_db
+    if db is None:
+        raise HTTPException(status_code=503, detail="Database not available")
+
+    try:
+        oid = ObjectId(article_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid article ID format")
+
+    try:
+        # Find the existing document first to save its state for versioning (if enabled)
+        existing_doc = await db.articles.find_one({"_id": oid})
+        if not existing_doc:
+            raise HTTPException(status_code=404, detail="Article not found for update")
+
+        # --- Versioning Logic (Optional - Mirroring PUT /api/admin/articles/{id}) ---
+        # prev_version = {
+        #     "title": existing_doc.get("title"),
+        #     "slug": existing_doc.get("slug"),
+        #     "content_md": existing_doc.get("content_md"),
+        #     "status": existing_doc.get("status", ArticleStatus.DRAFT.value),
+        #     "updated_at": existing_doc.get("updated_at")
+        # }
+        # --------------------------------------------------------------------------
+
+        update_data = {
+            "title": title,
+            "slug": slug,
+            "content_md": content_md,
+            "status": status,
+            "updated_at": datetime.utcnow()
+        }
+
+        update_operation = {
+            "$set": update_data,
+            # "$push": {"versions": prev_version} # Uncomment if using versioning
+        }
+
+        result = await db.articles.update_one({"_id": oid}, update_operation)
+
+        if result.matched_count == 0:
+            logger.error(f"Update failed: Article {article_id} found but not matched for update.")
+            # Maybe show error on edit page?
+            raise HTTPException(status_code=404, detail="Article not found during update")
+
+        # Redirect to the view page after successful update
+        return RedirectResponse(url=f"/admin/articles/{article_id}", status_code=302)
+
+    except Exception as e:
+        logger.error(f"Error updating article {article_id}: {e}", exc_info=True)
+        # Re-render edit form with error
+        article_data = {
+            "id": article_id,
+            "title": title,
+            "slug": slug,
+            "content_md": content_md,
+            "status": status,
+        }
+        return templates.TemplateResponse(
+            "admin/article_edit.html",
+            {
+                "request": request,
+                "article": article_data,
+                "error": f"Failed to update article: {str(e)}",
+                "user": user
+            },
+            status_code=500
+        ) 

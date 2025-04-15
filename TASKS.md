@@ -89,34 +89,42 @@ This file contains the list of tasks for developing the static site generator wi
 *   [x] Add button in admin panel to trigger static site generation
 *   [x] Add base CSS style for static site
 
-## Editor.js Integration (Block Editor with Markdown & MinIO)
+## Milkdown Integration (WYSIWYG Markdown Editor with MinIO)
 
-*   [ ] Research and select Editor.js plugins:
-    *   [ ] Plugin for Markdown import/export
-    *   [ ] Image Tool with custom backend support
-*   [ ] Add Editor.js to article create/edit page in admin panel
-    *   [ ] Install Editor.js and required plugins
-    *   [ ] Integrate Editor.js into the form
-    *   [ ] Load article from Markdown (Markdown → Editor.js JSON)
-    *   [ ] Save article as Markdown (Editor.js JSON → Markdown)
-*   [ ] Integrate image upload to MinIO:
-    *   [ ] Configure Editor.js Image Tool to upload images to backend
-    *   [ ] Implement FastAPI endpoint for image upload to MinIO
-    *   [ ] Return Caddy-proxied image URL to Editor.js
-    *   [ ] Display uploaded images in the editor
-*   [ ] Migrate existing articles:
-    *   [ ] Convert Markdown articles to Editor.js JSON for editing
-    *   [ ] Convert Editor.js JSON back to Markdown for storage/generation
-*   [ ] UI/UX improvements:
-    *   [ ] Add buttons/instructions for inserting images and blocks
-    *   [ ] Provide fallback (textarea) if Editor.js is not supported
+*   [ ] Setup Frontend Build System (if needed):
+    *   [ ] Choose and integrate a build tool (e.g., Vite, Parcel) into `admin_app`.
+    *   [ ] Configure for TypeScript/JavaScript bundling.
+*   [ ] Install Milkdown dependencies:
+    *   [ ] Install `@milkdown/core`, `@milkdown/prose`, `@milkdown/ctx`, `@milkdown/transformer`.
+    *   [ ] Install theme (e.g., `@milkdown/theme-nord`).
+    *   [ ] Install presets (e.g., `@milkdown/preset-commonmark`, `@milkdown/preset-gfm`).
+    *   [ ] Add dependencies to `package.json` (if using build system).
+*   [ ] Integrate Milkdown into admin UI:
+    *   [ ] Replace `<textarea>` with `<div id="editor">` in `article_create.html` / `article_edit.html`.
+    *   [ ] Write JS/TS code (via build system or inline script for simplicity first):
+        *   [ ] Initialize Milkdown editor instance with theme and presets.
+        *   [ ] Load existing `content_md` into the editor on page load.
+        *   [ ] Implement custom image upload plugin/listener:
+            *   [ ] Intercept image insertion.
+            *   [ ] Send image file to backend (`/api/admin/milkdown/upload_image`).
+            *   [ ] On success, insert `![alt](url)` Markdown using Milkdown commands.
+        *   [ ] Before form submit, get Markdown content (`editor.action(getMarkdown())`).
+        *   [ ] Place Markdown content into hidden input `content_md`.
+*   [ ] Implement Backend Image Upload Endpoint:
+    *   [ ] Create async FastAPI route `POST /api/admin/milkdown/upload_image`.
+    *   [ ] Accept `UploadFile`, require authentication.
+    *   [ ] Upload file to MinIO.
+    *   [ ] Return JSON `{"url": "caddy_proxied_url"}`.
+    *   [ ] Add error handling.
 *   [ ] Testing:
-    *   [ ] Test create/edit/save/generate for articles with various content
-    *   [ ] Test image upload and display
-    *   [ ] Test Markdown ↔ Editor.js JSON conversion
+    *   [ ] Test frontend build (if applicable).
+    *   [ ] Test editor loading, editing, saving Markdown content.
+    *   [ ] Test image upload and Markdown insertion.
+    *   [ ] Test static site generation with content from Milkdown.
 *   [ ] Documentation:
-    *   [ ] Document new editor usage for admin users
-    *   [ ] Document image upload API
+    *   [ ] Document new editor usage for admin users.
+    *   [ ] Document image upload API endpoint.
+    *   [ ] Document frontend build requirements (if applicable).
 
 ### Multilingual & Translation Pipeline (LLM)
 

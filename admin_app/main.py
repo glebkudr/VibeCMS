@@ -4,6 +4,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from contextlib import asynccontextmanager
 import logging # Import logging
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from admin_app.core.vite import register_vite_env # Import the vite helper registration
 
 """
 Architectural decision:
@@ -54,6 +56,21 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Mount the static directory for Vite's output BEFORE including routers that might depend on templates
+app.mount("/static/admin_dist", StaticFiles(directory="admin_app/static/admin_dist"), name="admin_static_dist")
+
+# --- Jinja2 Templates Setup ---
+# Create templates instance BEFORE routers need it
+templates = Jinja2Templates(directory="admin_app/templates")
+
+# Register the vite_tags helper
+register_vite_env(templates.env)
+
+# Dependency function to provide the configured templates instance
+def get_templates() -> Jinja2Templates:
+    return templates
+# -----------------------------
+
 """
 Centralized router inclusion:
 - CRUD routes for articles are included from admin_app/routes/articles.py.
@@ -62,7 +79,7 @@ Centralized router inclusion:
 from admin_app.routes import articles
 from admin_app.routes import images
 from admin_app.routes import auth
-from admin_app.routes import admin_ui
+from admin_app.routes import admin_ui # This will now use the configured templates via Depends
 
 app.include_router(auth.router, prefix="/api/admin", tags=["Auth"])
 app.include_router(articles.router, prefix="/api/admin", tags=["Articles"])
@@ -77,8 +94,6 @@ app.include_router(admin_ui.router)
 #     if not db:
 #         raise HTTPException(status_code=503, detail="Database not available")
 #     # ... use db ...
-
-templates = Jinja2Templates(directory="admin_app/templates")
 
 if __name__ == "__main__":
     import uvicorn

@@ -122,6 +122,51 @@ CADDY_HTTPS_PORT=443
 - For production, if you want Swagger UI at `/admin/docs`, set `root_path="/admin"` in your FastAPI app.
 - Ensure your domain's DNS is set up correctly and ports 80/443 are open.
 
+### Environment Variables (`.env` / `.env.dev`)
+
+Key environment variables you'll need to configure:
+
+*   `MONGO_URI`: Connection string for MongoDB.
+*   `MONGO_DATABASE`: Database name.
+*   `MINIO_ENDPOINT_URL`: URL for MinIO (e.g., `http://minio:9000` inside docker, `http://localhost:9000` from host).
+*   `MINIO_ACCESS_KEY`: MinIO root user.
+*   `MINIO_SECRET_KEY`: MinIO root password.
+*   `MINIO_BUCKET_NAME`: Bucket for image uploads (e.g., `images`).
+*   `ADMIN_USERNAME`: Initial admin username.
+*   `ADMIN_PASSWORD`: Initial admin password (hashed after first change).
+*   `JWT_SECRET_KEY`: Secret key for JWT tokens (generate a strong random key).
+*   `CADDY_DOMAIN_NAME`: Domain name for Caddy (e.g., `yourdomain.com` for prod, `localhost` for dev).
+*   `CADDY_HTTP_PORT`: Port Caddy listens on for HTTP (e.g., `80`).
+*   `CADDY_HTTPS_PORT`: Port Caddy listens on for HTTPS (e.g., `443`).
+*   **`VITE_DEV_MODE`**: Set to `true` **only for frontend development** with the Vite dev server. For production builds/runs, leave it unset or set to `false`.
+*   **`VITE_DEV_SERVER_URL`**: (Optional) Override the default Vite dev server URL (`http://localhost:5173`) if needed.
+
+## Frontend Development (Vite + Milkdown)
+
+This project uses Vite for frontend asset bundling (specifically for the Milkdown editor in the admin panel).
+
+**Two main modes:**
+
+1.  **Production Mode (Default with `docker-compose up --build`)**
+    *   When you build the `admin_app` Docker image (using `docker-compose up --build`), the `Dockerfile` runs `npm install --omit=dev` and `npm run build --prefix ./admin_app/frontend`.
+    *   This creates optimized, static JS/CSS assets inside the image (`admin_app/static/admin_dist/`).
+    *   FastAPI serves these pre-built assets.
+    *   Ensure `VITE_DEV_MODE` is **not** set to `true` in your `.env` file for this mode.
+
+2.  **Development Mode (with Hot Module Replacement - HMR)**
+    *   This allows you to see changes to frontend code (e.g., Milkdown setup in `admin_app/frontend/src/main.ts`) instantly in the browser without rebuilding the Docker image.
+    *   **Steps:**
+        1.  **Set Environment:** In your `.env.dev` file, add or set `VITE_DEV_MODE=true`.
+        2.  **Run Backend:** Start the backend services: `docker-compose --env-file .env.dev up -d` (you can omit `--build` if the image is already built and backend code hasn't changed significantly).
+        3.  **Run Vite Dev Server:** In a **separate terminal**, navigate to the frontend directory and start the Vite dev server:
+            ```powershell
+            cd admin_app/frontend
+            npm install # Run this once initially or after changing dependencies
+            npm run dev
+            ```
+        4.  **Access Admin Panel:** Open the admin panel in your browser (e.g., `http://localhost/admin/articles/create`). FastAPI (thanks to `VITE_DEV_MODE=true`) will now load assets directly from the Vite dev server (`http://localhost:5173` by default).
+    *   **Note:** The Vite dev server (`npm run dev`) runs on your **host machine**, not inside the Docker container in this setup. FastAPI inside the container fetches assets from `http://localhost:5173` (which resolves correctly due to Docker's networking). Ensure port 5173 is free on your host.
+
 ---
 
 For more details on the project structure and workflow, see the main [README.md](../README.md). 

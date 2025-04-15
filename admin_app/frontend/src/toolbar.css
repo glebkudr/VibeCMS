@@ -1,0 +1,58 @@
+/* Basic styles for Tiptap toolbar */
+#tiptap-toolbar {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    align-items: center;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-bottom: none; /* Remove bottom border to merge with editor */
+    background-color: #f8f9fa; /* Light background */
+    border-radius: 5px 5px 0 0; /* Rounded corners only at the top */
+}
+
+#tiptap-toolbar button {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin: 2px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1.4;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+#tiptap-toolbar button:hover {
+    background-color: #eee;
+    border-color: #ccc;
+}
+
+/* Style for active buttons */
+#tiptap-toolbar button.is-active {
+    background-color: #e0e0e0; /* Darker background for active state */
+    border-color: #bdbdbd;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Style for disabled buttons (e.g., undo/redo at limits) */
+#tiptap-toolbar button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toolbar-divider {
+    display: inline-block;
+    width: 1px;
+    height: 20px; /* Adjust height based on button size */
+    background-color: #ccc;
+    margin: 0 8px;
+    vertical-align: middle;
+}
+
+/* Specific button styles (optional) */
+#toolbar-bold { font-weight: bold; }
+#toolbar-italic { font-style: italic; }
+#toolbar-underline { text-decoration: underline; }
+#toolbar-strike { text-decoration: line-through; }
+
+/* Add more styles as needed */ 

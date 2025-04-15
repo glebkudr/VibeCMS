@@ -61,7 +61,7 @@ app.mount("/static/admin_dist", StaticFiles(directory="admin_app/static/admin_di
 
 # --- Jinja2 Templates Setup ---
 # Create templates instance BEFORE routers need it
-templates = Jinja2Templates(directory="admin_app/templates")
+templates = Jinja2Templates(directory="admin_app/frontend/templates")
 
 # Register the vite_tags helper
 register_vite_env(templates.env)

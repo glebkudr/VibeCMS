@@ -89,42 +89,27 @@ This file contains the list of tasks for developing the static site generator wi
 *   [x] Add button in admin panel to trigger static site generation
 *   [x] Add base CSS style for static site
 
-## Milkdown Integration (WYSIWYG Markdown Editor with MinIO)
+## Tiptap Block Editor Integration (Vanilla TS + Tailwind)
 
-*   [ ] Setup Frontend Build System (if needed):
-    *   [ ] Choose and integrate a build tool (e.g., Vite, Parcel) into `admin_app`.
-    *   [ ] Configure for TypeScript/JavaScript bundling.
-*   [ ] Install Milkdown dependencies:
-    *   [ ] Install `@milkdown/core`, `@milkdown/prose`, `@milkdown/ctx`, `@milkdown/transformer`.
-    *   [ ] Install theme (e.g., `@milkdown/theme-nord`).
-    *   [ ] Install presets (e.g., `@milkdown/preset-commonmark`, `@milkdown/preset-gfm`).
-    *   [ ] Add dependencies to `package.json` (if using build system).
-*   [ ] Integrate Milkdown into admin UI:
-    *   [ ] Replace `<textarea>` with `<div id="editor">` in `article_create.html` / `article_edit.html`.
-    *   [ ] Write JS/TS code (via build system or inline script for simplicity first):
-        *   [ ] Initialize Milkdown editor instance with theme and presets.
-        *   [ ] Load existing `content_md` into the editor on page load.
-        *   [ ] Implement custom image upload plugin/listener:
-            *   [ ] Intercept image insertion.
-            *   [ ] Send image file to backend (`/api/admin/milkdown/upload_image`).
-            *   [ ] On success, insert `![alt](url)` Markdown using Milkdown commands.
-        *   [ ] Before form submit, get Markdown content (`editor.action(getMarkdown())`).
-        *   [ ] Place Markdown content into hidden input `content_md`.
-*   [ ] Implement Backend Image Upload Endpoint:
-    *   [ ] Create async FastAPI route `POST /api/admin/milkdown/upload_image`.
-    *   [ ] Accept `UploadFile`, require authentication.
-    *   [ ] Upload file to MinIO.
-    *   [ ] Return JSON `{"url": "caddy_proxied_url"}`.
-    *   [ ] Add error handling.
-*   [ ] Testing:
-    *   [ ] Test frontend build (if applicable).
-    *   [ ] Test editor loading, editing, saving Markdown content.
-    *   [ ] Test image upload and Markdown insertion.
-    *   [ ] Test static site generation with content from Milkdown.
-*   [ ] Documentation:
-    *   [ ] Document new editor usage for admin users.
-    *   [ ] Document image upload API endpoint.
-    *   [ ] Document frontend build requirements (if applicable).
+*   [ ] Setup Tailwind CSS for `admin_app/frontend`:
+    *   [ ] Install `tailwindcss`, `postcss`, `autoprefixer`.
+    *   [ ] Create `tailwind.config.js` and `postcss.config.js`.
+    *   [ ] Configure template paths in `tailwind.config.js` to scan Jinja2 templates and TS files.
+    *   [ ] Update main CSS file (`admin_app/frontend/src/style.css` or similar) to include `@tailwind` directives.
+    *   [ ] Ensure Vite processes PostCSS/Tailwind correctly.
+*   [ ] Install required Tiptap extensions (Link, Image, Table, Task List, Code Highlighting, etc.) and `lowlight`.
+*   [ ] Analyze Tiptap configuration in `next-block-editor-app` example.
+*   [ ] Update `main.ts`: Replace `StarterKit` with the detailed list of extensions from the example.
+*   [ ] Update `main.ts`: Configure extensions (Link, Image, Placeholder, Table, CodeBlockLowlight) based on the example.
+*   [ ] Update `edit_article.html`: Add HTML structure for the Tiptap toolbar (buttons, controls) based on the example.
+*   [ ] Update `main.ts`: Implement toolbar button event listeners and Tiptap command execution.
+*   [ ] Update `main.ts`: Implement toolbar button state updates (`is-active`) based on `editor.isActive()`.
+*   [ ] Update `main.ts`: Implement basic UI logic for link editing.
+*   [ ] Update `main.ts`: Implement basic UI logic for image insertion (mock URL).
+*   [ ] Update `main.ts`: Implement basic UI logic for table insertion/modification.
+*   [ ] Apply Tailwind CSS classes to style the editor container and toolbar, mimicking the example.
+*   [ ] Test all integrated Tiptap features (formatting, links, images, tables, tasks, code blocks).
+*   [ ] Test Markdown loading (`marked`) and saving (`turndown`) with the new extensions.
 
 ### Multilingual & Translation Pipeline (LLM)
 
@@ -143,7 +128,6 @@ This file contains the list of tasks for developing the static site generator wi
     *   [ ] (Optional) Generate index.html and sitemap for each language
 *   [ ] Test translation pipeline and multilingual static generation
 *   [ ] Update documentation and .env.example for LLM API and multilingual support
-
 
 ## Phase 4: Testing and Refinement
 

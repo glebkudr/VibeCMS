@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import Depends, HTTPException, status, Security
+from fastapi import Depends, HTTPException, status, Security, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, SecurityScopes
 from jose import JWTError, jwt
 from pydantic import BaseModel
@@ -57,9 +57,10 @@ def authenticate_user(username: str, password: str) -> bool:
         return True
     return False
 
-def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
+def get_current_user(request: Request, token: str = Depends(oauth2_scheme)) -> str:
     """
     FastAPI dependency to get current user from JWT token.
+    Tries to extract JWT from Authorization header (Bearer) or from 'admin_jwt' cookie.
     Raises HTTP 401 if token is invalid or expired.
     """
     credentials_exception = HTTPException(
@@ -67,9 +68,25 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    jwt_token = None
+    # 1. Try Authorization header (OAuth2)
+    if token:
+        logger.info(f"[AUTH] Authorization header present. Token starts with: {token[:10]}...")
+        jwt_token = token
+    else:
+        cookie_token = request.cookies.get("admin_jwt")
+        if cookie_token:
+            logger.info(f"[AUTH] No Authorization header. Cookie 'admin_jwt' present. Token starts with: {cookie_token[:10]}...")
+        else:
+            logger.warning("[AUTH] No Authorization header and no 'admin_jwt' cookie present.")
+        jwt_token = cookie_token
+    if not jwt_token:
+        logger.warning("No JWT token found in Authorization header or cookie.")
+        raise credentials_exception
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(jwt_token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
         username: str = payload.get("sub")
+        logger.info(f"[AUTH] JWT decoded. Username: {username}")
         if username is None:
             logger.warning("JWT token missing 'sub' claim.")
             raise credentials_exception

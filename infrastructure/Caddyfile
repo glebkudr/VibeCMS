@@ -2,8 +2,8 @@
 	# Global options block (optional)
 	# Enable Admin API (useful for debugging/dynamic config)
 	admin :2019
-	# Automatic HTTPS configuration (can be disabled for local dev)
-	auto_https off # Change to `disable_redirects` or remove for production with domain
+	# Disable auto HTTPS for dev (localhost), включить для продакшена
+	auto_https off
 	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory # Use Let's Encrypt staging for testing
 }
 
@@ -22,22 +22,14 @@
 	}
 
 	# Reverse proxy requests to the Admin Panel (FastAPI)
-	reverse_proxy /admin/* http://admin_app:8000 {
-		# header_up Host {http.request.host}
-		# header_up X-Real-IP {http.request.remote}
-		# header_up X-Forwarded-For {http.request.remote}
-		# header_up X-Forwarded-Proto {http.request.scheme}
-	}
+	reverse_proxy /admin/* http://admin_app:8000
 
 	# Reverse proxy requests to MinIO for images
 	# The path rewrite removes /images/ prefix before forwarding to MinIO
 	# It expects the bucket name to be part of the path passed from MinIO client
 	# e.g., request to /images/my-bucket/image.png -> proxy to minio:9000/my-bucket/image.png
 	reverse_proxy /images/* http://minio:9000 {
-		header_up Host {http.request.host} # Important for MinIO to know the host
-		# header_up X-Real-IP {http.request.remote}
-		# header_up X-Forwarded-For {http.request.remote}
-		# header_up X-Forwarded-Proto {http.request.scheme}
+		header_up Host {http.request.host}
 	}
 
 	# Basic logging
@@ -47,7 +39,13 @@
 	}
 }
 
-{$CADDY_DOMAIN_NAME:80} {
+# Production: если CADDY_DOMAIN_NAME задан, будет HTTPS и домен
+{$CADDY_DOMAIN_NAME}:80, {$CADDY_DOMAIN_NAME}:443 {
+	import site_common
+}
+
+# Dev fallback: если переменная не задана, слушаем :80 (или :8080 через docker-compose)
+:80 {
 	import site_common
 }
 

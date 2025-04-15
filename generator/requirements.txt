@@ -4,9 +4,9 @@ markdown-it-py
 # Templating
 Jinja2
 
-# Database (should match admin_app choice, pymongo might be simpler here if script is sync)
-pymongo
-# motor # If generator needs to be async
+# Database (should match admin_app choice)
+# pymongo
+motor # If generator needs to be async
 
 # Environment variable loading (optional)
 # python-dotenv 

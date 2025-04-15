@@ -8,6 +8,11 @@ import os
 from admin_app.models import ArticleRead, ArticleStatus
 from bson import ObjectId
 from admin_app.core.admin_password import verify_admin_password, change_admin_password
+import asyncio
+import sys # Added for subprocess
+import logging
+
+logger = logging.getLogger(__name__) # Added for logging
 
 router = APIRouter()
 templates = Jinja2Templates(directory="admin_app/templates")
@@ -178,4 +183,50 @@ async def settings_post(request: Request, current_password: str = Form(...), new
     ok = await change_admin_password(db, current_password, new_password)
     if not ok:
         return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": "Current password is incorrect", "success": None, "title": "Settings"}, status_code=401)
-    return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": None, "success": "Password changed successfully", "title": "Settings"}) 
+    return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": None, "success": "Password changed successfully", "title": "Settings"})
+
+async def run_generator_script():
+    """Run the static site generator script as a subprocess."""
+    logger.info("Starting generator script execution...")
+    try:
+        # Correct path to generator script assuming it's one level up
+        generator_script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../generator/generate.py'))
+        logger.info(f"Generator script path: {generator_script_path}")
+
+        # Ensure the script exists
+        if not os.path.exists(generator_script_path):
+            logger.error(f"Generator script not found at {generator_script_path}")
+            return {"status": "error", "message": "Generator script not found."}
+
+        # Execute the script using the same Python interpreter
+        # Run in a separate process to avoid blocking the FastAPI event loop
+        process = await asyncio.create_subprocess_exec(
+            sys.executable, generator_script_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await process.communicate()
+
+        if process.returncode == 0:
+            logger.info("Generator script finished successfully.")
+            logger.info(f"stdout:\n{stdout.decode()}")
+            return {"status": "success", "message": "Static site generated successfully."}
+        else:
+            logger.error(f"Generator script failed with code {process.returncode}.")
+            logger.error(f"stderr:\n{stderr.decode()}")
+            return {"status": "error", "message": f"Generator script failed: {stderr.decode()}"}
+
+    except Exception as e:
+        logger.exception("Failed to run generator script")
+        return {"status": "error", "message": f"Failed to run generator script: {str(e)}"}
+
+@router.post("/admin/generate-site", status_code=202) # Use 202 Accepted
+async def trigger_generation(request: Request, user: str = Depends(get_current_user_ui)):
+    if isinstance(user, RedirectResponse):
+        return user # Redirect if not logged in
+    logger.info(f"User '{user}' triggered site generation.")
+    # Run the generator script in the background without waiting for it to finish
+    # Note: This means the response returns immediately, and generation happens async.
+    # For better feedback, consider using background tasks or a task queue.
+    asyncio.create_task(run_generator_script())
+    return {"message": "Static site generation process started."} 

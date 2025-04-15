@@ -5,6 +5,8 @@
 {% block content %}
 <h1>Articles</h1>
 <a href="/admin/articles/create" class="btn" style="margin-bottom: 1rem;">Create New Article</a>
+<button id="generate-site-btn" class="btn" style="margin-left: 1rem;">Generate Static Site</button>
+<span id="generate-status" style="margin-left: 1rem;"></span>
 <table>
     <thead>
         <tr>
@@ -34,4 +36,28 @@
     {% endfor %}
     </tbody>
 </table>
+<script>
+document.getElementById('generate-site-btn').addEventListener('click', async function() {
+    const statusSpan = document.getElementById('generate-status');
+    statusSpan.textContent = 'Generating...';
+    try {
+        const resp = await fetch('/admin/generate-site', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            statusSpan.textContent = data.message || 'Generation started.';
+        } else {
+            statusSpan.textContent = 'Error: ' + resp.status;
+        }
+    } catch (e) {
+        statusSpan.textContent = 'Error: ' + e;
+    }
+});
+</script>
 {% endblock %} 

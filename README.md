@@ -126,4 +126,8 @@ See [infrastructure/DEV_SETUP.md](infrastructure/DEV_SETUP.md) for detailed deve
   - The admin UI: "Change Password" link on the login page
   - The API: `POST /api/admin/change-password` with `{ "current_password": ..., "new_password": ... }`
 - Changing the password always requires entering the current password.
-- For security, set a strong initial password in the environment variable and change it after first login. 
+- For security, set a strong initial password in the environment variable and change it after first login.
+
+## Project Rules
+
+- See [Project Rules and Gotchas](design/projectrules.md) for important implementation notes and pitfalls (e.g., MongoDB bool check). 

@@ -3,6 +3,10 @@ uvicorn[standard]
 pydantic
 pydantic-settings
 
+markdown-it-py
+
+python-slugify
+
 jinja2
 
 # Database

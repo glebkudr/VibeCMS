@@ -47,20 +47,16 @@ This file contains the list of tasks for developing the static site generator wi
     *   [x] Remove conflicting API root route ("/")
     *   [x] Document async requirement for all UI routes using MongoDB
     *   [x] Refactor all UI routes to async def and use await with motor
-*   [ ] (Separate task) Switch password storage to hash (passlib) after basic JWT auth is ready.
+*   [x] (Separate task) Switch password storage to hash (passlib) after basic JWT auth is ready.
+*   [x] (Separate task) Allow admin to change password via UI (settings page, only for authorized user).
+*   [x] (Separate task) Protect password change with current password check and require authorization.
+*   [x] (Separate task) Update UI: move password change to settings, add visual separation.
+*   [x] (Separate task) Update documentation and .env.example for new password management scheme.
+*   [x] (Separate task) Add project rules and gotchas to design/projectrules.md (e.g., MongoDB bool check).
 *   [ ] (Optional) Implement article versioning on update.
 *   [ ] Add logging.
 
-## Phase 2.5: Admin Panel UI (SPA)
-
-*   [ ] Implement SPA admin interface:
-    *   [ ] Login page (JWT)
-    *   [ ] Logout functionality
-    *   [ ] Article list page (CRUD)
-    *   [ ] Article view page (with "Edit" button)
-*   [ ] Implement article editor UI (separate task, not in scope for now)
-
-## Phase 2.6: Admin Panel UI (Server-side, FastAPI + Jinja2)
+## Phase 2.5: Admin Panel UI (Server-side, FastAPI + Jinja2)
 
 *   [x] Implement server-side admin interface (FastAPI + Jinja2):
     *   [x] Login page (form, JWT in cookie or session)
@@ -90,6 +86,24 @@ This file contains the list of tasks for developing the static site generator wi
     *   [ ] (Optional) Generate an index page with a list of articles.
     *   [ ] (Optional) Copy static assets (CSS, JS) to `static_output`.
 *   [ ] Add logging to the generation script.
+
+### Multilingual & Translation Pipeline (LLM)
+
+*   [ ] Implement translation service for LLM API (translate_text, generate_slug)
+*   [ ] Implement translation pipeline script:
+    *   [ ] For each article and each supported language, check and generate missing translations (title, content_md, slug)
+    *   [ ] Store translations in MongoDB under translations[lang]
+    *   [ ] Mark machine-generated translations (optional)
+    *   [ ] Support dry-run and verbose logging modes
+    *   [ ] Ensure idempotency (do not overwrite manual edits)
+*   [ ] Integrate translation pipeline as a pre-step in the static generator
+*   [ ] Update static generator:
+    *   [ ] For each article and each language, generate HTML in static_output/<lang>/<slug>/index.html
+    *   [ ] Pass lang and hreflang links to Jinja2 templates
+    *   [ ] Generate hreflang tags in <head> of each page
+    *   [ ] (Optional) Generate index.html and sitemap for each language
+*   [ ] Test translation pipeline and multilingual static generation
+*   [ ] Update documentation and .env.example for LLM API and multilingual support
 
 ## Phase 4: Testing and Refinement
 

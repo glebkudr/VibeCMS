@@ -512,7 +512,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async just i
 
         console.log("Tiptap editor instance created with SlashCommandExtension.");
 
-        // --- Toolbar Logic --- START ---
+        // --- Toolbar Logic & Tooltips --- START ---
         const toolbar = document.getElementById('tiptap-toolbar');
 
         // Helper function to update button active state
@@ -597,7 +597,25 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async just i
             toolbar.querySelector('#toolbar-undo')?.addEventListener('click', () => editor.chain().focus().undo().run());
             toolbar.querySelector('#toolbar-redo')?.addEventListener('click', () => editor.chain().focus().redo().run());
 
-             // Add listeners for other buttons...
+            // Initialize Tippy tooltips for toolbar buttons
+            const buttonsWithTooltips = toolbar.querySelectorAll<HTMLButtonElement>('button[aria-label]');
+            buttonsWithTooltips.forEach(button => {
+                const label = button.getAttribute('aria-label');
+                if (label) {
+                    tippy(button, {
+                        content: label,
+                        placement: 'bottom', // Show tooltip below the button
+                        delay: [300, 0], // Delay showing tooltip slightly
+                        arrow: true,
+                        theme: 'light-border', // Example theme, can be customized
+                         // Optional: Add animation or other Tippy options
+                    });
+                }
+            });
+            console.log(`Initialized tooltips for ${buttonsWithTooltips.length} toolbar buttons.`);
+
+        } else {
+            console.warn("Tiptap toolbar element not found, skipping toolbar logic and tooltips.");
         }
 
         // Update button states on transaction/selection change
@@ -606,8 +624,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async just i
 
         // Initial button state check
         updateToolbarButtons();
-
-        // --- Toolbar Logic --- END ---
+        // --- Toolbar Logic & Tooltips --- END ---
 
         // --- Image Upload Logic --- START ---
         if (imageUploadInput) {

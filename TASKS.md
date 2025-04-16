@@ -107,6 +107,7 @@ This file contains the list of tasks for developing the static site generator wi
 *   [x] Update `main.ts`: Implement basic UI logic for table insertion/modification.
 *   [ ] Implement missing toolbar buttons and logic (Highlight, Color, Align, Sub/Sup, etc.).
 *   [ ] Improve UI logic for link and table insertion (e.g., use modals).
+*   [x] Initialize Tippy.js tooltips for toolbar buttons.
 *   [ ] Test all integrated Tiptap features (formatting, links, images, tables, tasks, code blocks).
 *   [x] Verify HTML saving from Tiptap and usage in generator.
 *   [ ] Test styling applied from the extracted CSS.

@@ -1010,4 +1010,86 @@ body.dark-theme .tiptap-toolbar button.is-active {
 }
 body.dark-theme .tiptap-toolbar .divider {
     background-color: #555;
+}
+
+/* Slash Command Menu Styles (Basic) */
+.tippy-box[data-theme~='slash-command'] {
+    background-color: #fff;
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: 0 0 #0000, 0 0 #0000, 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1); /* shadow-lg */
+    border: 1px solid #e5e7eb; /* border-gray-200 */
+    padding: 0.5rem; /* p-2 */
+    /* Remove default Tippy arrow */
+    /* .tippy-arrow { display: none; } */
+}
+
+.slash-command-menu {
+    display: flex;
+    flex-direction: column;
+    min-width: 16rem; /* min-w-[16rem] */
+    max-height: 200px; /* Add max height for scroll */
+    overflow-y: auto; /* Enable scroll */
+}
+
+.slash-command-item {
+    background: none;
+    border: none;
+    padding: 0.5rem 0.75rem; /* py-2 px-3 */
+    margin: 0;
+    text-align: left;
+    width: 100%;
+    border-radius: 0.25rem; /* rounded */
+    cursor: pointer;
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.25rem;
+    color: #374151; /* text-gray-700 */
+    display: flex; /* Align icon and text */
+    align-items: center; /* Center items vertically */
+}
+
+.slash-command-item-icon {
+    display: inline-flex; /* Use flex for better alignment */
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem; /* Add space between icon and text */
+    width: 1em; /* Match SVG size */
+    height: 1em; /* Match SVG size */
+    flex-shrink: 0; /* Prevent icon from shrinking */
+}
+
+.slash-command-item-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.slash-command-item-text {
+    flex-grow: 1; /* Allow text to take remaining space */
+}
+
+.slash-command-item.is-selected {
+    background-color: #f3f4f6; /* bg-gray-100 */
+    color: #111827; /* text-gray-900 */
+}
+
+.slash-command-item:hover:not(.is-selected) {
+    background-color: #f9fafb; /* bg-gray-50 */
+}
+
+/* Dark theme adjustments (Placeholder) */
+.dark .tippy-box[data-theme~='slash-command'] {
+    background-color: #1f2937; /* dark:bg-gray-800 */
+    border-color: #4b5563; /* dark:border-gray-600 */
+}
+
+.dark .slash-command-item {
+    color: #d1d5db; /* dark:text-gray-300 */
+}
+
+.dark .slash-command-item.is-selected {
+    background-color: #374151; /* dark:bg-gray-700 */
+    color: #f9fafb; /* dark:text-gray-50 */
+}
+
+.dark .slash-command-item:hover:not(.is-selected) {
+    background-color: #4b5563; /* dark:bg-gray-600 */
 } 

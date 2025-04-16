@@ -111,6 +111,18 @@ This file contains the list of tasks for developing the static site generator wi
 *   [x] Verify HTML saving from Tiptap and usage in generator.
 *   [ ] Test styling applied from the extracted CSS.
 
+### Slash Command Menu
+*   [x] Install `@tiptap/suggestion` and `tippy.js` dependencies.
+*   [x] Create `SlashCommandExtension` extending `Tiptap Extension`.
+*   [x] Define list of commands (`slashCommands`) in `main.ts`.
+*   [x] Configure `Suggestion` utility within the extension.
+*   [x] Create `SlashCommandMenuRenderer` class in `main.ts` to manage menu DOM/events.
+*   [x] Integrate `SlashCommandMenuRenderer` and `tippy.js` in the extension's `render` function.
+*   [x] Add basic CSS styles for the slash command menu and items to `tiptap-editor.css`.
+*   [ ] Implement rendering of icons and descriptions in the menu items (optional).
+*   [ ] Test slash command activation, filtering, keyboard navigation, and command execution.
+*   [ ] Refine CSS styles for the slash command menu.
+
 ### Multilingual & Translation Pipeline (LLM)
 
 *   [ ] Implement translation service for LLM API (translate_text, generate_slug)

@@ -11,7 +11,7 @@ import './tiptap-editor.css'; // Import Tiptap editor styles
 // import { MDParser, MDImporter } from 'editorjs-md-parser';
 
 // Import Tiptap and necessary extensions/tools
-import { Editor } from '@tiptap/core';
+import { Editor, Extension, Range } from '@tiptap/core';
 // Remove StarterKit import
 // import StarterKit from '@tiptap/starter-kit';
 import Blockquote from '@tiptap/extension-blockquote';
@@ -53,6 +53,11 @@ import TextAlign from '@tiptap/extension-text-align';
 import TextStyle from '@tiptap/extension-text-style';
 import Typography from '@tiptap/extension-typography';
 import Underline from '@tiptap/extension-underline';
+// Import Suggestion utility and related types
+import { Plugin, PluginKey } from '@tiptap/pm/state'; // Need PluginKey
+import Suggestion, { type SuggestionOptions, type SuggestionProps, type SuggestionKeyDownProps } from '@tiptap/suggestion';
+import tippy, { type Instance as TippyInstance, type Props as TippyProps } from 'tippy.js';
+import 'tippy.js/dist/tippy.css'; // Import default tippy styles (can be customized later)
 
 // Import lowlight for code block syntax highlighting
 // Try importing createLowlight if direct { lowlight } fails with TS
@@ -84,6 +89,310 @@ import { log } from 'console';
 
 console.log('Admin frontend entry point loaded.');
 
+// --- Define Slash Commands --- START ---
+// Define the type for our command items
+type CommandItem = {
+  title: string;
+  command: (props: { editor: Editor; range: Range }) => void;
+  aliases?: string[];
+  iconSVG?: string; // Optional SVG string for the icon
+};
+
+// Define the list of commands (example) with icons
+// Using Feather Icons SVG strings
+const slashCommands: CommandItem[] = [
+  {
+    title: 'Heading 1', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run(), aliases: ['h1'],
+    iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heading-1"><path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17 12h3"/><path d="m18.5 7 3 5 -3 5"/></svg>`
+  },
+  {
+    title: 'Heading 2', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run(), aliases: ['h2'],
+    iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heading-2"><path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M21 18h-4c0-4 4-3 4-6 0-1.5-2-2.5-4-1"/></svg>`
+  },
+  {
+    title: 'Heading 3', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run(), aliases: ['h3'],
+    iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heading-3"><path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17.5 10.5c1.7-1 3.5-1 3.5 1.5a2 2 0 0 1-2 2"/><path d="M17 17.5c2 1.5 4 .3 4-1.5a2 2 0 0 0-2-2"/></svg>`
+  },
+  {
+    title: 'Bullet List', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleBulletList().run(), aliases: ['ul'],
+    iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>`
+  },
+  {
+    title: 'Numbered List', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleOrderedList().run(), aliases: ['ol'],
+    iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list-ordered"><line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>`
+  },
+  {
+    title: 'Task List', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleTaskList().run(), aliases: ['todo'],
+    iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-square"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>`
+  },
+  {
+    title: 'Blockquote', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setBlockquote().run(),
+    iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-right"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>`
+  },
+  {
+    title: 'Code Block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setCodeBlock().run(),
+    iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-terminal"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>`
+  },
+  {
+    title: 'Table', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+    iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-grid"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>`
+  },
+  {
+    title: 'Image', command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run();
+      const imageUploadInput = document.getElementById('image-upload-input') as HTMLInputElement | null;
+      imageUploadInput?.click();
+    }, aliases: ['img'],
+    iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-image"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`
+  },
+  {
+    title: 'Horizontal Rule', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setHorizontalRule().run(), aliases: ['hr'],
+    iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`
+  },
+];
+
+// --- Define Slash Commands --- END ---
+
+// --- Create Vanilla JS Menu Renderer --- START ---
+
+class SlashCommandMenuRenderer {
+    element: HTMLElement;
+    tippyInstance: TippyInstance | null = null;
+    props: SuggestionProps<CommandItem>;
+    selectedIndex: number = 0;
+
+    constructor(props: SuggestionProps<CommandItem>) {
+        this.props = props;
+        this.element = document.createElement('div');
+        this.element.className = 'slash-command-menu'; // Add a class for styling
+        this.renderItems();
+        this.element.addEventListener('click', this.handleClick);
+        // Initial selection
+        this.updateSelection(0);
+    }
+
+    renderItems = () => {
+        this.element.innerHTML = ''; // Clear previous items
+        if (this.props.items.length === 0) {
+            this.element.textContent = 'No commands found';
+            return;
+        }
+        this.props.items.forEach((item, index) => {
+            const button = document.createElement('button');
+            button.className = 'slash-command-item';
+            button.dataset.index = String(index);
+
+            // Create icon element
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'slash-command-item-icon';
+            if (item.iconSVG) {
+                iconSpan.innerHTML = item.iconSVG; // Set SVG content
+            }
+            button.appendChild(iconSpan);
+
+             // Create text element
+             const textSpan = document.createElement('span');
+             textSpan.className = 'slash-command-item-text';
+             textSpan.textContent = item.title;
+             button.appendChild(textSpan);
+
+            this.element.appendChild(button);
+        });
+        // Ensure selectedIndex is valid
+        this.selectedIndex = Math.max(0, Math.min(this.selectedIndex, this.props.items.length - 1));
+        this.updateSelection(this.selectedIndex);
+    };
+
+    handleClick = (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        const button = target.closest('.slash-command-item') as HTMLButtonElement | null;
+        if (button && button.dataset.index !== undefined) {
+            this.selectItem(parseInt(button.dataset.index, 10));
+        }
+    };
+
+    updateProps = (props: SuggestionProps<CommandItem>) => {
+        this.props = props;
+        this.renderItems();
+    };
+
+    onKeyDown = ({ event }: SuggestionKeyDownProps): boolean => {
+        if (event.key === 'ArrowUp') {
+            this.selectedIndex = (this.selectedIndex + this.props.items.length - 1) % this.props.items.length;
+            this.updateSelection(this.selectedIndex);
+            return true; // Mark as handled
+        }
+        if (event.key === 'ArrowDown') {
+            this.selectedIndex = (this.selectedIndex + 1) % this.props.items.length;
+            this.updateSelection(this.selectedIndex);
+            return true; // Mark as handled
+        }
+        if (event.key === 'Enter') {
+            this.selectItem(this.selectedIndex);
+            return true; // Mark as handled
+        }
+        // Escape is handled by onExit in suggestion options usually
+        return false; // Let Tiptap/suggestion handle other keys
+    };
+
+    updateSelection = (index: number) => {
+        this.selectedIndex = index;
+        const items = this.element.querySelectorAll('.slash-command-item');
+        items.forEach((item, i) => {
+            item.classList.toggle('is-selected', i === index);
+        });
+        // Scroll into view if needed
+        const selectedButton = items[index];
+        if (selectedButton) {
+             selectedButton.scrollIntoView({ block: 'nearest' });
+        }
+    };
+
+    selectItem = (index: number) => {
+        const item = this.props.items[index];
+        if (item) {
+            console.log(`Executing command: ${item.title}`);
+            this.props.command(item); // Pass the whole item to the command handler
+        }
+        // Tippy instance hiding should be handled by the onExit callback
+    };
+
+    destroy = () => {
+        console.log("Destroying SlashCommandMenuRenderer");
+        this.element.removeEventListener('click', this.handleClick);
+        // Tippy instance should be destroyed in onExit
+        if (this.element.parentNode) {
+            this.element.parentNode.removeChild(this.element);
+        }
+    };
+}
+
+// --- Create Vanilla JS Menu Renderer --- END ---
+
+// --- Create Custom Slash Command Extension --- START ---
+
+// Define any options we might want to configure later (optional)
+// interface SlashCommandExtensionOptions {
+//   suggestionOptions?: Partial<SuggestionOptions<CommandItem>>;
+// }
+
+const SlashCommandExtension = Extension.create<any>({
+// const SlashCommandExtension = Extension.create<SlashCommandExtensionOptions>({
+  name: 'slashCommand',
+
+  // Remove addOptions if we don't have configurable options for now
+  // addOptions() {
+  //   return {
+  //     suggestionOptions: {}, // Default empty config
+  //   };
+  // },
+
+  addProseMirrorPlugins() {
+    let menuRenderer: SlashCommandMenuRenderer | null = null;
+    let tippyPopup: TippyInstance | null = null;
+
+    // Helper function to safely get ClientRect or a default Rect
+    const getClientRect = (clientRectFunc: (() => DOMRect | null) | null | undefined): DOMRect => {
+         if (!clientRectFunc) {
+            // Fallback if clientRect function is not available
+            console.warn('SlashCommand: clientRect function unavailable');
+            return new DOMRect(0, 0, 0, 0);
+        }
+        const rect = clientRectFunc();
+        if (!rect) {
+             // Fallback if clientRect() returns null
+             console.warn('SlashCommand: clientRect() returned null');
+             return new DOMRect(0, 0, 0, 0);
+        }
+        return rect;
+    };
+
+    const suggestionOptions: Omit<SuggestionOptions<CommandItem>, 'editor'> = {
+        items: ({ query }) => {
+            return slashCommands
+                .filter(item => {
+                    const titleMatch = item.title.toLowerCase().startsWith(query.toLowerCase());
+                    const aliasMatch = item.aliases?.some(alias => alias.toLowerCase().startsWith(query.toLowerCase()));
+                    return titleMatch || aliasMatch;
+                })
+                .slice(0, 10);
+        },
+        render: () => {
+            return {
+                onStart: (props: SuggestionProps<CommandItem>) => {
+                    console.log('Slash Command Suggestion started (Vanilla):', props);
+                    menuRenderer = new SlashCommandMenuRenderer(props);
+
+                    const tippyOptions: Partial<TippyProps> = {
+                         // Use the helper function to ensure a valid Rect is always returned
+                        getReferenceClientRect: () => getClientRect(props.clientRect),
+                        appendTo: () => document.body,
+                        content: menuRenderer.element,
+                        showOnCreate: true,
+                        interactive: true,
+                        trigger: 'manual',
+                        placement: 'bottom-start',
+                        theme: 'slash-command',
+                        maxWidth: '16rem',
+                        offset: [0, 8],
+                        popperOptions: {
+                            strategy: 'fixed',
+                            modifiers: [{ name: 'flip', enabled: false }],
+                        },
+                    };
+                    tippyPopup = tippy('body', tippyOptions)[0];
+
+                     if (!tippyPopup) {
+                        console.error("Failed to create Tippy instance for slash commands.");
+                    }
+                },
+                onUpdate(props: SuggestionProps<CommandItem>) {
+                    console.log('Slash Command Suggestion updated (Vanilla):', props);
+                    menuRenderer?.updateProps(props);
+                    // Use the helper function here as well
+                    tippyPopup?.setProps({ getReferenceClientRect: () => getClientRect(props.clientRect) });
+                },
+                onKeyDown(props: SuggestionKeyDownProps): boolean {
+                    console.log('Slash Command Suggestion keydown (Vanilla):', props.event.key);
+                    if (props.event.key === 'Escape') {
+                        tippyPopup?.hide();
+                        return true;
+                    }
+                    return menuRenderer?.onKeyDown(props) ?? false;
+                },
+                onExit() {
+                    console.log('Slash Command Suggestion exited (Vanilla)');
+                    tippyPopup?.destroy();
+                    menuRenderer?.destroy();
+                    tippyPopup = null;
+                    menuRenderer = null;
+                },
+            };
+        },
+        char: '/',
+        allowSpaces: false,
+        startOfLine: true,
+        command: ({ editor, range, props }) => {
+            const selectedItemCommand = props.command as (props: { editor: Editor; range: Range }) => void;
+            selectedItemCommand({ editor, range });
+        },
+        pluginKey: new PluginKey('slashCommand')
+        // Allow overriding parts via extension options if needed
+        // ...this.options.suggestionOptions,
+    };
+
+    return [
+      // Pass the editor instance along with the defined options
+      Suggestion({
+        editor: this.editor,
+        ...suggestionOptions,
+      }),
+    ];
+  },
+});
+
+// --- Create Custom Slash Command Extension --- END ---
+
 document.addEventListener('DOMContentLoaded', async () => { // Keep async just in case, though marked is removed
     const editorElement = document.getElementById('editor');
     const form = document.getElementById('article-form') as HTMLFormElement | null;
@@ -112,7 +421,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async just i
     const initialContentHtml = initialHtmlContentElement?.innerHTML ?? '';
     console.log('Initial HTML for Tiptap editor:', initialContentHtml);
 
-    console.log('Initializing Tiptap editor with direct HTML content...');
+    console.log('Initializing Tiptap editor...');
 
     try {
         // Initialize Tiptap Editor
@@ -192,9 +501,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async just i
                     defaultAlignment: 'left',
                 }),
                 Typography, // Apply typographic enhancements (e.g., smart quotes)
-
-                // Note: Some extensions might have interdependencies or require specific order.
-                // Review Tiptap docs if issues arise.
+                // Add the custom SlashCommandExtension
+                SlashCommandExtension, // No .configure() needed if using default options
             ],
             content: initialContentHtml, // Set initial content (HTML)
             // autofocus: true, // Optional
@@ -202,7 +510,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async just i
             // Add other Tiptap options here
         });
 
-        console.log("Tiptap editor instance created with detailed extensions.");
+        console.log("Tiptap editor instance created with SlashCommandExtension.");
 
         // --- Toolbar Logic --- START ---
         const toolbar = document.getElementById('tiptap-toolbar');

@@ -10,7 +10,9 @@
     "watch": "vite build --watch"
   },
   "devDependencies": {
+    "@tiptap/suggestion": "^2.11.7",
     "@types/node": "^20.11.10",
+    "tippy.js": "^6.3.7",
     "typescript": "^5.2.2",
     "vite": "^5.2.0"
   },

@@ -2,4 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Add your custom styles below if needed */ 
+/* Add your custom styles below if needed */
+
+/* Responsive images for Tiptap editor */
+.tiptap img,
+.ProseMirror img,
+.content-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0.5em auto;
+} 

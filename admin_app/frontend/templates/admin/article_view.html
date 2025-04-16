@@ -11,8 +11,10 @@
     <h2>{{ article.title }}</h2>
     <p><b>Status:</b> {{ article.status }}</p>
     <p><b>Created:</b> {{ article.created_at }}<br><b>Updated:</b> {{ article.updated_at }}</p>
-    <h3>Content (Markdown):</h3>
-    <pre style="background:#f0f0f0; padding:1rem; border-radius:4px;">{{ article.content_md }}</pre>
+    <h3>Content:</h3>
+    <div style="border:1px solid #ccc; padding:1rem; border-radius:4px; background:#f9f9f9;">
+        {{ article.content_html | safe }}
+    </div>
     <a href="/admin/articles/{{ article.id }}/edit" class="btn">Edit</a>
     <a href="/admin/articles" class="btn">Back to List</a>
 {% endif %}

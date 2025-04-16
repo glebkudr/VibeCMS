@@ -89,14 +89,13 @@ This file contains the list of tasks for developing the static site generator wi
 *   [x] Add button in admin panel to trigger static site generation
 *   [x] Add base CSS style for static site
 
-## Tiptap Block Editor Integration (Vanilla TS + Tailwind)
+## Tiptap Block Editor Integration (Vanilla TS + CSS)
 
-*   [ ] Setup Tailwind CSS for `admin_app/frontend`:
-    *   [ ] Install `tailwindcss`, `postcss`, `autoprefixer`.
-    *   [ ] Create `tailwind.config.js` and `postcss.config.js`.
-    *   [ ] Configure template paths in `tailwind.config.js` to scan Jinja2 templates and TS files.
-    *   [ ] Update main CSS file (`admin_app/frontend/src/style.css` or similar) to include `@tailwind` directives.
-    *   [ ] Ensure Vite processes PostCSS/Tailwind correctly.
+*   [ ] Extract CSS styles for editor and toolbar from `tiptap-templates-main/templates/next-block-editor-app`.
+*   [ ] Create a dedicated CSS file (e.g., `admin_app/frontend/src/tiptap-editor.css`) for the styles.
+*   [ ] Import the `tiptap-editor.css` file in `admin_app/frontend/src/main.ts`.
+*   [ ] Apply appropriate CSS classes to editor container and toolbar elements in `admin_app/templates/edit_article.html`.
+*   [ ] Refine extracted CSS to match the project's structure and context.
 *   [ ] Install required Tiptap extensions (Link, Image, Table, Task List, Code Highlighting, etc.) and `lowlight`.
 *   [ ] Analyze Tiptap configuration in `next-block-editor-app` example.
 *   [ ] Update `main.ts`: Replace `StarterKit` with the detailed list of extensions from the example.
@@ -105,11 +104,11 @@ This file contains the list of tasks for developing the static site generator wi
 *   [ ] Update `main.ts`: Implement toolbar button event listeners and Tiptap command execution.
 *   [ ] Update `main.ts`: Implement toolbar button state updates (`is-active`) based on `editor.isActive()`.
 *   [ ] Update `main.ts`: Implement basic UI logic for link editing.
-*   [ ] Update `main.ts`: Implement basic UI logic for image insertion (mock URL).
+*   [ ] Update `main.ts`: Implement basic UI logic for image insertion (using the already implemented upload).
 *   [ ] Update `main.ts`: Implement basic UI logic for table insertion/modification.
-*   [ ] Apply Tailwind CSS classes to style the editor container and toolbar, mimicking the example.
 *   [ ] Test all integrated Tiptap features (formatting, links, images, tables, tasks, code blocks).
 *   [ ] Test Markdown loading (`marked`) and saving (`turndown`) with the new extensions.
+*   [ ] Test styling applied from the extracted CSS.
 
 ### Multilingual & Translation Pipeline (LLM)
 

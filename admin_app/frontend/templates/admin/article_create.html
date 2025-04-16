@@ -4,12 +4,7 @@
 
 {% block head %}
 {{ super() }}
-<!-- Editor.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script> PARAGRAPH IS DEFAULT -->
+{# Removed Editor.js CDN imports as we use Tiptap via Vite #}
 <style>
     /* Optional: Add some basic styling for the editor container */
     .codex-editor__redactor {
@@ -37,14 +32,40 @@
         <input type="text" id="slug" name="slug" required style="width: 100%; padding: 0.5rem;">
     </div>
     <div style="margin-bottom: 1rem;">
-        <label for="editor">Content (Markdown):</label><br>
-        {# Replace textarea with a div for Milkdown #}
-        <div id="editor" style="border: 1px solid #ccc; border-radius: 5px; min-height: 300px; background-color: #fff;"></div>
-        {# Hidden input to store the final Markdown content #}
-        <input type="hidden" id="content_md_hidden" name="content_md">
-        {# Pass initial markdown content here if needed (e.g., for editing) #}
-        {# Example for editing: <textarea id="initial_markdown" style="display: none;">{{ article.content_md | e }}</textarea> #}
-        {# For create form, we can skip this or pass an empty string #}
+        <label for="editor">Content:</label><br> {# Updated Label #}
+        {# Add Tiptap toolbar #}
+        <div id="tiptap-toolbar" style="border: 1px solid #ccc; border-bottom: none; padding: 5px; background-color: #f8f8f8;">
+            <button type="button" id="toolbar-bold">B</button>
+            <button type="button" id="toolbar-italic">I</button>
+            <button type="button" id="toolbar-underline">U</button>
+            <button type="button" id="toolbar-strike">S</button>
+            <span class="toolbar-divider">|</span>
+            <button type="button" id="toolbar-h1">H1</button>
+            <button type="button" id="toolbar-h2">H2</button>
+            <button type="button" id="toolbar-h3">H3</button>
+            <button type="button" id="toolbar-p">P</button>
+            <span class="toolbar-divider">|</span>
+            <button type="button" id="toolbar-ul">UL</button>
+            <button type="button" id="toolbar-ol">OL</button>
+            <button type="button" id="toolbar-task">Task</button>
+            <button type="button" id="toolbar-blockquote">Quote</button>
+            <span class="toolbar-divider">|</span>
+            <button type="button" id="toolbar-link">Link</button>
+            <button type="button" id="toolbar-image">Image</button>
+            <button type="button" id="toolbar-table">Table</button>
+            <button type="button" id="toolbar-code">Code</button>
+            <button type="button" id="toolbar-codeblock">CodeBlock</button>
+            <span class="toolbar-divider">|</span>
+            <button type="button" id="toolbar-hr">HR</button>
+            <button type="button" id="toolbar-undo">Undo</button>
+            <button type="button" id="toolbar-redo">Redo</button>
+        </div>
+        {# Div for Tiptap Editor #}
+        <div id="editor" style="border: 1px solid #ccc; border-radius: 0 0 5px 5px; min-height: 300px; background-color: #fff; padding: 10px;"></div>
+        {# Hidden input to store the final HTML content #}
+        <input type="hidden" id="content_html_hidden" name="content_html">
+        {# Hidden div for initial HTML content (empty for create form) #}
+        <div id="initial_html_content" style="display: none;"></div>
     </div>
     <div style="margin-bottom: 1rem;">
         <label for="status">Status:</label><br>

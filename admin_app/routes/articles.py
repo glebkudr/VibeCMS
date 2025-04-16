@@ -16,6 +16,11 @@ from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
 from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
+# Remove bleach import
+# import bleach
+# Import Sanitizer and constants
+from html_sanitizer import Sanitizer
+from admin_app.core.html_sanitizer import ALLOWED_TAGS, ALLOWED_ATTRIBUTES
 from admin_app.models import ArticleCreate, ArticleRead, ArticleUpdate, ArticleInDB, ArticleStatus
 from admin_app.core.auth import get_current_user
 
@@ -23,6 +28,19 @@ logger = logging.getLogger(__name__)
 
 # Remove prefix and tags here, they will be applied in main.py
 router = APIRouter()
+
+# Create a reusable sanitizer instance with dynamically built attributes
+dynamic_attributes_api = ALLOWED_ATTRIBUTES.copy()
+for tag in ALLOWED_TAGS:
+    allowed_for_tag = set(dynamic_attributes_api.get(tag, []))
+    allowed_for_tag.update(['class', 'style'])
+    dynamic_attributes_api[tag] = list(allowed_for_tag)
+
+sanitizer_config_api = {
+    'tags': set(ALLOWED_TAGS),
+    'attributes': dynamic_attributes_api,
+}
+sanitizer_api = Sanitizer(sanitizer_config_api)
 
 def get_db(request: Request):
     """Dependency to get the database client from the request state."""
@@ -35,7 +53,8 @@ def get_db(request: Request):
 def to_article_read(doc: dict) -> ArticleRead:
     """Converts a MongoDB document to an ArticleRead Pydantic model."""
     # Ensure required fields are present, provide defaults for optional ones
-    if not all(k in doc for k in ["_id", "title", "slug", "content_md", "created_at", "updated_at"]):
+    # Use 'content_html' instead of 'content_md'
+    if not all(k in doc for k in ["_id", "title", "slug", "content_html", "created_at", "updated_at"]):
         logger.error(f"Document missing required fields for ArticleRead conversion: {doc.get('_id', 'N/A')}")
         # Depending on strictness, either raise an error or return a partial/default object
         # For now, let it potentially fail if pydantic validation fails later
@@ -45,7 +64,7 @@ def to_article_read(doc: dict) -> ArticleRead:
         id=str(doc["_id"]),
         title=doc["title"],
         slug=doc["slug"],
-        content_md=doc["content_md"],
+        content_html=doc["content_html"], # Changed from content_md
         status=ArticleStatus(doc.get("status", ArticleStatus.DRAFT)), # Use Enum
         created_at=doc["created_at"],
         updated_at=doc["updated_at"],
@@ -66,9 +85,27 @@ async def create_article(
     """
     Creates a new article.
     Default status is 'draft'.
+    Sanitizes HTML content before saving.
     """
     now = datetime.utcnow()
     article_doc = article.dict()
+
+    # Sanitize HTML content before saving
+    try:
+        # Use html-sanitizer
+        sanitized_html = sanitizer_api.sanitize(article_doc.get('content_html', ''))
+        # sanitized_html = bleach.clean(
+        #     article_doc.get('content_html', ''),
+        #     tags=ALLOWED_TAGS,
+        #     attributes=ALLOWED_ATTRIBUTES,
+        #     # styles=ALLOWED_STYLES, # Removed
+        #     strip=True # Remove disallowed tags instead of escaping
+        # )
+        article_doc['content_html'] = sanitized_html
+    except Exception as e:
+        logger.error(f"Error sanitizing HTML content during article creation: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to process article content")
+
     article_doc["status"] = ArticleStatus.DRAFT # Set default status
     article_doc["created_at"] = now
     article_doc["updated_at"] = now
@@ -153,6 +190,7 @@ async def update_article(
     """
     Updates an article by its ID.
     The previous state is saved in the 'versions' list.
+    Sanitizes HTML content if provided.
     """
     try:
         oid = ObjectId(article_id)
@@ -167,11 +205,11 @@ async def update_article(
             logger.warning(f"Article not found for update with ID: {article_id}")
             raise HTTPException(status_code=404, detail=f"Article not found: {article_id}")
 
-        # Create the previous version entry
+        # Create the previous version entry (using content_html)
         prev_version = {
             "title": existing_doc["title"],
             "slug": existing_doc["slug"],
-            "content_md": existing_doc["content_md"],
+            "content_html": existing_doc.get("content_html", ""), # Use content_html
             "status": existing_doc.get("status", ArticleStatus.DRAFT),
             "updated_at": existing_doc["updated_at"]
         }
@@ -181,6 +219,23 @@ async def update_article(
         if not update_data:
             logger.info(f"No update data provided for article {article_id}. Returning current state.")
             return to_article_read(existing_doc) # Or raise 400 Bad Request?
+
+        # Sanitize HTML content if it's being updated
+        if 'content_html' in update_data:
+            try:
+                # Use html-sanitizer (reuse the same instance)
+                sanitized_html = sanitizer_api.sanitize(update_data['content_html'])
+                # sanitized_html = bleach.clean(
+                #     update_data['content_html'],
+                #     tags=ALLOWED_TAGS,
+                #     attributes=ALLOWED_ATTRIBUTES,
+                #     # styles=ALLOWED_STYLES, # Removed
+                #     strip=True
+                # )
+                update_data['content_html'] = sanitized_html
+            except Exception as e:
+                logger.error(f"Error sanitizing HTML content during article update {article_id}: {e}", exc_info=True)
+                raise HTTPException(status_code=500, detail="Failed to process article content")
 
         update_data["updated_at"] = datetime.utcnow()
 

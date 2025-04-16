@@ -12,6 +12,11 @@ import asyncio
 import sys # Added for subprocess
 import logging
 from admin_app.main import get_templates
+# Remove bleach import
+# import bleach
+# Import Sanitizer and constants
+from html_sanitizer import Sanitizer
+from admin_app.core.html_sanitizer import ALLOWED_TAGS, ALLOWED_ATTRIBUTES
 
 logger = logging.getLogger(__name__) # Added for logging
 
@@ -104,7 +109,7 @@ async def article_create_post(
     request: Request,
     title: str = Form(...),
     slug: str = Form(...),
-    content_md: str = Form(...),
+    content_html: str = Form(...),
     status: str = Form("draft"),
     user: str = Depends(get_current_user_ui),
     templates: Jinja2Templates = Depends(get_templates) # Add dependency
@@ -118,12 +123,33 @@ async def article_create_post(
     article_doc = {
         "title": title,
         "slug": slug,
-        "content_md": content_md,
+        "content_html": content_html,
         "status": status,
         "created_at": now,
         "updated_at": now,
         "versions": []
     }
+    # Create a reusable sanitizer instance with dynamically built attributes
+    dynamic_attributes = ALLOWED_ATTRIBUTES.copy() # Start with specific attributes
+    for tag in ALLOWED_TAGS:
+        allowed_for_tag = set(dynamic_attributes.get(tag, []))
+        allowed_for_tag.update(['class', 'style']) # Add class and style
+        dynamic_attributes[tag] = list(allowed_for_tag)
+
+    sanitizer_config = {
+        'tags': set(ALLOWED_TAGS),
+        'attributes': dynamic_attributes, # Use the dynamically built dict
+        # Add other html-sanitizer specific settings if needed
+    }
+    sanitizer = Sanitizer(sanitizer_config)
+
+    try:
+        # Use html-sanitizer
+        sanitized_html = sanitizer.sanitize(article_doc.get('content_html', ''))
+        article_doc['content_html'] = sanitized_html
+    except Exception as e:
+        logger.error(f"Error sanitizing HTML content during UI article creation: {e}", exc_info=True)
+        return templates.TemplateResponse("admin/article_create.html", {"request": request, "error": "Failed to process article content", "user": user}, status_code=500)
     try:
         result = await db.articles.insert_one(article_doc)
         return RedirectResponse(url=f"/admin/articles/{result.inserted_id}", status_code=302)
@@ -246,23 +272,42 @@ async def run_generator_script():
             logger.error(f"Generator script not found at {generator_script_path}")
             return {"status": "error", "message": "Generator script not found."}
 
+        # Prepare environment variables for the subprocess
+        subprocess_env = os.environ.copy()
+        # Ensure required MONGO vars are present (you might need to fetch them from config)
+        if 'MONGO_URI' not in subprocess_env or 'MONGO_DATABASE' not in subprocess_env:
+             logger.warning("MONGO_URI or MONGO_DATABASE not found in environment for generator script. Attempting to run anyway.")
+             # Optionally, load from a .env file here if the main app uses one
+             # Or retrieve from app state/config if stored there
+
+        logger.info(f"Running generator script with MONGO_URI: {subprocess_env.get('MONGO_URI')} and MONGO_DATABASE: {subprocess_env.get('MONGO_DATABASE')}")
+
         # Execute the script using the same Python interpreter
         # Run in a separate process to avoid blocking the FastAPI event loop
         process = await asyncio.create_subprocess_exec(
             sys.executable, generator_script_path,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
+            env=subprocess_env # Pass the environment explicitly
         )
         stdout, stderr = await process.communicate()
 
+        # Log both stdout and stderr
+        stdout_decoded = stdout.decode().strip()
+        stderr_decoded = stderr.decode().strip()
+
+        if stdout_decoded:
+            logger.info(f"Generator stdout:\n{stdout_decoded}")
+        if stderr_decoded:
+            logger.warning(f"Generator stderr:\n{stderr_decoded}")
+
         if process.returncode == 0:
             logger.info("Generator script finished successfully.")
-            logger.info(f"stdout:\n{stdout.decode()}")
-            return {"status": "success", "message": "Static site generated successfully."}
+            # Return stdout/stderr for potential feedback
+            return {"status": "success", "message": "Static site generated successfully.", "stdout": stdout_decoded, "stderr": stderr_decoded}
         else:
             logger.error(f"Generator script failed with code {process.returncode}.")
-            logger.error(f"stderr:\n{stderr.decode()}")
-            return {"status": "error", "message": f"Generator script failed: {stderr.decode()}"}
+            return {"status": "error", "message": f"Generator script failed: {stderr_decoded or 'Unknown error'}", "stdout": stdout_decoded, "stderr": stderr_decoded}
 
     except Exception as e:
         logger.exception("Failed to run generator script")
@@ -300,12 +345,12 @@ async def article_edit_get(
         if not doc:
             raise HTTPException(status_code=404, detail="Article not found")
 
-        # Prepare article data for the template
+        # Prepare article data for the template using content_html
         article_data = {
             "id": str(doc["_id"]),
             "title": doc.get("title", ""),
             "slug": doc.get("slug", ""),
-            "content_md": doc.get("content_md", ""),
+            "content_html": doc.get("content_html", ""),
             "status": doc.get("status", ArticleStatus.DRAFT.value), # Ensure status is a string value
             # Add other fields if needed by the template
         }
@@ -332,7 +377,7 @@ async def article_edit_post(
     article_id: str,
     title: str = Form(...),
     slug: str = Form(...),
-    content_md: str = Form(...), # This comes from the hidden input updated by Milkdown
+    content_html: str = Form(...),
     status: str = Form(...),
     user: str = Depends(get_current_user_ui),
     templates: Jinja2Templates = Depends(get_templates)
@@ -356,22 +401,49 @@ async def article_edit_post(
             raise HTTPException(status_code=404, detail="Article not found for update")
 
         # --- Versioning Logic (Optional - Mirroring PUT /api/admin/articles/{id}) ---
+        # Consider using content_html here if versioning is enabled
         # prev_version = {
         #     "title": existing_doc.get("title"),
         #     "slug": existing_doc.get("slug"),
-        #     "content_md": existing_doc.get("content_md"),
+        #     "content_html": existing_doc.get("content_html"),
         #     "status": existing_doc.get("status", ArticleStatus.DRAFT.value),
         #     "updated_at": existing_doc.get("updated_at")
         # }
         # --------------------------------------------------------------------------
 
+        # Prepare update data using content_html
         update_data = {
             "title": title,
             "slug": slug,
-            "content_md": content_md,
+            "content_html": content_html,
             "status": status,
             "updated_at": datetime.utcnow()
         }
+
+        # Sanitize HTML before saving update (important!)
+        # Reuse the sanitizer instance or recreate if needed
+        # Using the same dynamic configuration logic
+        dynamic_attributes_update = ALLOWED_ATTRIBUTES.copy()
+        for tag in ALLOWED_TAGS:
+            allowed_for_tag = set(dynamic_attributes_update.get(tag, []))
+            allowed_for_tag.update(['class', 'style'])
+            dynamic_attributes_update[tag] = list(allowed_for_tag)
+
+        sanitizer_config_update = {
+            'tags': set(ALLOWED_TAGS),
+            'attributes': dynamic_attributes_update,
+        }
+        sanitizer_update = Sanitizer(sanitizer_config_update)
+        try:
+            # Use html-sanitizer
+            sanitized_html = sanitizer_update.sanitize(update_data.get('content_html', ''))
+            # sanitized_html = bleach.clean(...)
+            update_data['content_html'] = sanitized_html
+        except Exception as e:
+            logger.error(f"Error sanitizing HTML content during UI article update {article_id}: {e}", exc_info=True)
+            # Re-render edit form with error (maybe add error to context?)
+            # For simplicity, raising HTTPException here, but better UI would re-render form with error
+            raise HTTPException(status_code=500, detail="Failed to process article content")
 
         update_operation = {
             "$set": update_data,
@@ -395,7 +467,7 @@ async def article_edit_post(
             "id": article_id,
             "title": title,
             "slug": slug,
-            "content_md": content_md,
+            "content_html": content_html,
             "status": status,
         }
         return templates.TemplateResponse(

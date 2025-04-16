@@ -29,7 +29,7 @@ class ArticleBase(BaseModel):
     """
     title: str = Field(..., description="Article title")
     slug: str = Field(..., description="URL-friendly identifier (slug) for the article")
-    content_md: str = Field(..., description="Markdown content of the article")
+    content_html: str = Field(..., description="HTML content of the article from Tiptap editor")
     status: ArticleStatus = Field(ArticleStatus.DRAFT, description="Article status: draft/published/archived")
 
 class ArticleCreate(ArticleBase):
@@ -47,7 +47,7 @@ class ArticleUpdate(BaseModel):
     """
     title: Optional[str] = Field(None, description="Article title")
     slug: Optional[str] = Field(None, description="URL-friendly identifier (slug) for the article")
-    content_md: Optional[str] = Field(None, description="Markdown content of the article")
+    content_html: Optional[str] = Field(None, description="HTML content of the article from Tiptap editor")
     status: Optional[ArticleStatus] = Field(None, description="Article status: draft/published/archived")
 
 class ArticleRead(ArticleBase):
@@ -62,7 +62,7 @@ class ArticleRead(ArticleBase):
     class ArticleVersion(BaseModel):
         title: str
         slug: str
-        content_md: str
+        content_html: str
         status: ArticleStatus
         updated_at: datetime
 

@@ -28,7 +28,7 @@
         <input type="text" id="slug" name="slug" value="{{ article.slug | e }}" required style="width: 100%; padding: 0.5rem;">
     </div>
     <div style="margin-bottom: 1rem;">
-        <label for="editor">Content (Markdown):</label><br>
+        <label for="editor">Content:</label><br>
         {# Tiptap Toolbar #}
         <div id="tiptap-toolbar" style="border: 1px solid #ccc; border-bottom: none; padding: 5px; background-color: #f8f8f8;">
             <button type="button" id="toolbar-bold">B</button>
@@ -59,10 +59,11 @@
         </div>
         {# Div for Tiptap Editor #}
         <div id="editor" style="border: 1px solid #ccc; border-radius: 0 0 5px 5px; min-height: 300px; background-color: #fff; padding: 10px;"></div>
-        {# Hidden input to store the final Markdown content #}
-        <input type="hidden" id="content_md_hidden" name="content_md">
-        {# Hidden textarea to pass initial markdown to Tiptap JS #}
-        <textarea id="initial_markdown" style="display: none;">{{ article.content_md | e }}</textarea>
+        {# Hidden input to store the final HTML content #}
+        <input type="hidden" id="content_html_hidden" name="content_html">
+        {# Hidden div to pass initial HTML content to Tiptap JS #}
+        {# Use | safe because this is trusted HTML from our own Tiptap editor #}
+        <div id="initial_html_content" style="display: none;">{{ article.content_html | safe }}</div>
     </div>
     <div style="margin-bottom: 1rem;">
         <label for="status">Status:</label><br>

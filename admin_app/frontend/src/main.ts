@@ -76,50 +76,42 @@ lowlight.register('ts', ts);
 lowlight.register('python', python);
 lowlight.register('bash', bash);
 
-import { marked } from 'marked'; // Use named import if possible, check library export
-import TurndownService from 'turndown'; // Use default import if that's how it's exported
+// Remove marked and Turndown imports
+// import { marked } from 'marked';
+// import TurndownService from 'turndown';
 import { log } from 'console';
 
 console.log('Admin frontend entry point loaded.');
 
-document.addEventListener('DOMContentLoaded', async () => { // Keep async for marked.parse
+document.addEventListener('DOMContentLoaded', async () => { // Keep async just in case, though marked is removed
     const editorElement = document.getElementById('editor');
     const form = document.getElementById('article-form') as HTMLFormElement | null;
-    const contentMdHiddenInput = document.getElementById('content_md_hidden') as HTMLInputElement | null;
-    const initialMarkdownElement = document.getElementById('initial_markdown') as HTMLTextAreaElement | null;
+    // Change hidden input ID and name
+    const contentHtmlHiddenInput = document.getElementById('content_html_hidden') as HTMLInputElement | null;
+    // Remove initial markdown textarea element reference
+    // const initialMarkdownElement = document.getElementById('initial_markdown') as HTMLTextAreaElement | null;
+    // Get initial HTML from a hidden div instead
+    const initialHtmlContentElement = document.getElementById('initial_html_content') as HTMLDivElement | null;
     const imageUploadInput = document.getElementById('image-upload-input') as HTMLInputElement | null; // Get the file input
 
     // Check if the editor container exists on the page
     if (!editorElement) {
          console.log('Tiptap editor container (#editor) not found on this page.');
-         // Don't return if form/hidden input exist, might be other forms on the page
-         // Only proceed if editorElement is present.
          return
     }
 
      // Ensure other required elements are present only if the editor container is found
-     if (!form || !contentMdHiddenInput) {
-         console.warn('Required elements for Tiptap integration (form or hidden input) not found, though #editor exists.');
+     // Update check for the new hidden input ID
+     if (!form || !contentHtmlHiddenInput) {
+         console.warn('Required elements for Tiptap integration (form or content_html_hidden input) not found, though #editor exists.');
          // Allow editor initialization, but saving might fail.
      }
 
-    const initialContentMd = initialMarkdownElement?.value ?? ''; // Get initial markdown
+    // Get initial HTML from the hidden div
+    const initialContentHtml = initialHtmlContentElement?.innerHTML ?? '';
+    console.log('Initial HTML for Tiptap editor:', initialContentHtml);
 
-    console.log('Initializing Tiptap editor...');
-
-    let initialContentHtml = '';
-    if (initialContentMd) {
-        try {
-            // Use marked to convert initial Markdown to HTML
-            // Make sure marked is configured to handle potential security risks if needed
-            // Using await as marked.parse might be async
-            initialContentHtml = await marked.parse(initialContentMd);
-            console.log('Initial Markdown converted to HTML for Tiptap.');
-        } catch (error) {
-            console.error("Error converting initial Markdown to HTML:", error);
-            // Initialize Tiptap with empty content in case of error
-        }
-    }
+    console.log('Initializing Tiptap editor with direct HTML content...');
 
     try {
         // Initialize Tiptap Editor
@@ -362,25 +354,23 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async for ma
         // --- Image Upload Logic --- END ---
 
         // Add form submit handler only if form and hidden input are valid
-        if (form && contentMdHiddenInput) {
+        if (form && contentHtmlHiddenInput) {
             form.addEventListener('submit', (e) => {
-                // Don't preventDefault initially, let Turndown run first
                 console.log('Form submit intercepted for Tiptap.');
                 try {
                     const htmlContent = editor.getHTML(); // Get HTML from Tiptap
-                    console.log('Tiptap HTML output:', htmlContent);
+                    console.log('Tiptap HTML output for submission:', htmlContent);
 
-                    // Initialize Turndown service to convert HTML back to Markdown
-                    // Configure Turndown options if needed (e.g., headingStyle, bulletListMarker)
+                    // Remove Turndown conversion
+                    /*
                     const turndownService = new TurndownService({ headingStyle: 'atx', bulletListMarker: '-' });
-
                     const markdownContent = turndownService.turndown(htmlContent); // Convert
                     console.log('Converted Tiptap HTML to Markdown:', markdownContent);
+                    */
 
-                    contentMdHiddenInput.value = markdownContent; // Update hidden input
-                    console.log('Hidden input updated with Markdown.');
-                    // Now allow the form submission to proceed naturally
-                    // If we prevented default: form.submit();
+                    // Update the correct hidden input
+                    contentHtmlHiddenInput.value = htmlContent; // Update hidden input with HTML
+                    console.log('Hidden input (content_html_hidden) updated with HTML.');
 
                 } catch (error) {
                     console.error('Error processing Tiptap content for submission:', error);
@@ -389,7 +379,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async for ma
                 }
             });
         } else {
-             console.warn("Form or hidden input not found. Content saving via Tiptap is disabled.");
+             // Update warning message
+             console.warn("Form or content_html_hidden input not found. Content saving via Tiptap is disabled.");
         }
 
         // Optional: Handle editor destruction on page unload

@@ -4,7 +4,6 @@ import logging
 from typing import List
 from motor.motor_asyncio import AsyncIOMotorClient
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from markdown_it import MarkdownIt
 import shutil
 
 # Настройка логирования
@@ -23,8 +22,6 @@ jinja_env = Environment(
     loader=FileSystemLoader(TEMPLATES_DIR),
     autoescape=select_autoescape(['html', 'xml'])
 )
-
-md = MarkdownIt()
 
 async def fetch_published_articles(db) -> List[dict]:
     """
@@ -50,15 +47,16 @@ def clear_static_output():
 
 def render_article_html(article: dict) -> str:
     """
-    Render article HTML from markdown and template.
+    Render article HTML using stored HTML content and template.
     """
-    content_html = md.render(article['content_md'])
+    # Use content_html directly, ensure it exists or provide fallback
+    content_html = article.get('content_html', '')
     template = jinja_env.get_template('article.html')
     html = template.render(
-        title=article['title'],
+        title=article.get('title', 'Untitled'), # Use .get for safety
         content=content_html,
-        slug=article['slug'],
-        article=article
+        slug=article.get('slug', 'no-slug'), # Use .get for safety
+        article=article # Pass the full article dict for potential use in template
     )
     return html
 

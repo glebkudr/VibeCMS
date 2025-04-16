@@ -25,4 +25,10 @@ python-dotenv
 python-jose[cryptography]
 
 # Password hashing
-passlib[bcrypt] 
+passlib[bcrypt]
+
+# HTML sanitization
+html-sanitizer>=2.0.0
+
+# HTML sanitization
+# bleach>=5.0.0 

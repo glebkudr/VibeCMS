@@ -29,40 +29,80 @@
     </div>
     <div style="margin-bottom: 1rem;">
         <label for="editor">Content:</label><br>
-        {# Tiptap Toolbar #}
-        <div id="tiptap-toolbar" style="border: 1px solid #ccc; border-bottom: none; padding: 5px; background-color: #f8f8f8;">
-            <button type="button" id="toolbar-bold">B</button>
-            <button type="button" id="toolbar-italic">I</button>
-            <button type="button" id="toolbar-underline">U</button>
-            <button type="button" id="toolbar-strike">S</button>
-            <span class="toolbar-divider">|</span>
-            <button type="button" id="toolbar-h1">H1</button>
-            <button type="button" id="toolbar-h2">H2</button>
-            <button type="button" id="toolbar-h3">H3</button>
-            <button type="button" id="toolbar-p">P</button>
-            <span class="toolbar-divider">|</span>
-            <button type="button" id="toolbar-ul">UL</button>
-            <button type="button" id="toolbar-ol">OL</button>
-            <button type="button" id="toolbar-task">Task</button>
-            <button type="button" id="toolbar-blockquote">Quote</button>
-            <span class="toolbar-divider">|</span>
-            <button type="button" id="toolbar-link">Link</button>
-            <button type="button" id="toolbar-image">Image</button>
-            <button type="button" id="toolbar-table">Table</button>
-            <button type="button" id="toolbar-code">Code</button>
-            <button type="button" id="toolbar-codeblock">CodeBlock</button>
-            <span class="toolbar-divider">|</span>
-            <button type="button" id="toolbar-hr">HR</button>
-            <button type="button" id="toolbar-undo">Undo</button>
-            <button type="button" id="toolbar-redo">Redo</button>
+        {# Tiptap Toolbar - Apply tiptap-toolbar class, remove inline styles #}
+        <div id="tiptap-toolbar" class="tiptap-toolbar">
+             <button type="button" id="toolbar-bold" aria-label="Bold">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bold"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path></svg>
+             </button>
+             <button type="button" id="toolbar-italic" aria-label="Italic">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-italic"><line x1="19" y1="4" x2="10" y2="4"></line><line x1="14" y1="20" x2="5" y2="20"></line><line x1="15" y1="4" x2="9" y2="20"></line></svg>
+             </button>
+             <button type="button" id="toolbar-underline" aria-label="Underline">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-underline"><path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path><line x1="4" y1="21" x2="20" y2="21"></line></svg>
+             </button>
+             <button type="button" id="toolbar-strike" aria-label="Strikethrough">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-strikethrough"><path d="M16 4H9a3 3 0 0 0-2.83 4M14 12a4 4 0 0 1 0 8H6"></path><line x1="4" y1="12" x2="20" y2="12"></line></svg>
+             </button>
+            <span class="divider"></span> {# Divider class provides styling #}
+            <button type="button" id="toolbar-h1" aria-label="Heading 1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heading-1"><path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17 12h3"/><path d="m18.5 7 3 5 -3 5"/></svg>
+             </button>
+            <button type="button" id="toolbar-h2" aria-label="Heading 2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heading-2"><path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M21 18h-4c0-4 4-3 4-6 0-1.5-2-2.5-4-1"/></svg>
+            </button>
+            <button type="button" id="toolbar-h3" aria-label="Heading 3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heading-3"><path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17.5 10.5c1.7-1 3.5-1 3.5 1.5a2 2 0 0 1-2 2"/><path d="M17 17.5c2 1.5 4 .3 4-1.5a2 2 0 0 0-2-2"/></svg>
+            </button>
+            <button type="button" id="toolbar-p" aria-label="Paragraph">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-paragraph"><path d="M18 4H6v12"/><path d="M6 4v12h2"/></svg>
+            </button>
+            <span class="divider"></span> {# Divider class provides styling #}
+            <button type="button" id="toolbar-ul" aria-label="Bullet List">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            </button>
+            <button type="button" id="toolbar-ol" aria-label="Ordered List">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list-ordered"><line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+             </button>
+            <button type="button" id="toolbar-task" aria-label="Task List">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-square"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            </button>
+            <button type="button" id="toolbar-blockquote" aria-label="Blockquote">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-right"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+            </button>
+            <span class="divider"></span> {# Divider class provides styling #}
+            <button type="button" id="toolbar-link" aria-label="Link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            </button>
+            <button type="button" id="toolbar-image" aria-label="Image">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-image"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            </button>
+            <button type="button" id="toolbar-table" aria-label="Table">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-grid"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            </button>
+            <button type="button" id="toolbar-code" aria-label="Code">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-code"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            </button>
+            <button type="button" id="toolbar-codeblock" aria-label="Code Block">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-terminal"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            </button>
+            <span class="divider"></span> {# Divider class provides styling #}
+            <button type="button" id="toolbar-hr" aria-label="Horizontal Rule">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+            <button type="button" id="toolbar-undo" aria-label="Undo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-corner-up-left"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
+            </button>
+            <button type="button" id="toolbar-redo" aria-label="Redo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-corner-up-right"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
+            </button>
             {# Add more buttons as needed: highlight, color, text-align, sub/sup, font-family, etc. #}
         </div>
-        {# Div for Tiptap Editor #}
-        <div id="editor" style="border: 1px solid #ccc; border-radius: 0 0 5px 5px; min-height: 300px; background-color: #fff; padding: 10px;"></div>
+        {# Div for Tiptap Editor - Remove inline styles, Tiptap applies ProseMirror class #}
+        <div id="editor"></div>
         {# Hidden input to store the final HTML content #}
         <input type="hidden" id="content_html_hidden" name="content_html">
         {# Hidden div to pass initial HTML content to Tiptap JS #}
-        {# Use | safe because this is trusted HTML from our own Tiptap editor (or sanitized by backend) #}
+        {# Use | safe because this is trusted HTML from our own Tiptap editor #}
         <div id="initial_html_content" style="display: none;">{{ article.content_html | safe }}</div>
     </div>
     <div style="margin-bottom: 1rem;">

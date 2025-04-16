@@ -80,8 +80,7 @@ This file contains the list of tasks for developing the static site generator wi
     *   [x] Fetch all articles with status `published` from MongoDB.
     *   [x] Clear the `static_output` directory before generation.
     *   [x] For each article:
-        *   [x] Convert `content_md` to HTML using `markdown-it-py`.
-        *   [x] Render HTML using Jinja2 template (`article.html`).
+        *   [x] Render HTML using Jinja2 template (`article.html`) with `content_html`.
         *   [x] Save the result to `static_output/{slug}/index.html`.
     *   [ ] (Optional) Generate an index page with a list of articles.
     *   [x] (Optional) Copy static assets (CSS, JS) to `static_output`.
@@ -91,30 +90,32 @@ This file contains the list of tasks for developing the static site generator wi
 
 ## Tiptap Block Editor Integration (Vanilla TS + CSS)
 
-*   [ ] Extract CSS styles for editor and toolbar from `tiptap-templates-main/templates/next-block-editor-app`.
-*   [ ] Create a dedicated CSS file (e.g., `admin_app/frontend/src/tiptap-editor.css`) for the styles.
-*   [ ] Import the `tiptap-editor.css` file in `admin_app/frontend/src/main.ts`.
-*   [ ] Apply appropriate CSS classes to editor container and toolbar elements in `admin_app/templates/edit_article.html`.
-*   [ ] Refine extracted CSS to match the project's structure and context.
-*   [ ] Install required Tiptap extensions (Link, Image, Table, Task List, Code Highlighting, etc.) and `lowlight`.
-*   [ ] Analyze Tiptap configuration in `next-block-editor-app` example.
-*   [ ] Update `main.ts`: Replace `StarterKit` with the detailed list of extensions from the example.
-*   [ ] Update `main.ts`: Configure extensions (Link, Image, Placeholder, Table, CodeBlockLowlight) based on the example.
-*   [ ] Update `edit_article.html`: Add HTML structure for the Tiptap toolbar (buttons, controls) based on the example.
-*   [ ] Update `main.ts`: Implement toolbar button event listeners and Tiptap command execution.
-*   [ ] Update `main.ts`: Implement toolbar button state updates (`is-active`) based on `editor.isActive()`.
-*   [ ] Update `main.ts`: Implement basic UI logic for link editing.
-*   [ ] Update `main.ts`: Implement basic UI logic for image insertion (using the already implemented upload).
-*   [ ] Update `main.ts`: Implement basic UI logic for table insertion/modification.
+*   [x] Extract CSS styles for editor and toolbar from `tiptap-templates-main/templates/next-block-editor-app`.
+*   [x] Create a dedicated CSS file (e.g., `admin_app/frontend/src/tiptap-editor.css`) for the styles.
+*   [x] Import the `tiptap-editor.css` file in `admin_app/frontend/src/main.ts`.
+*   [x] Apply appropriate CSS classes to editor container and toolbar elements in `admin_app/templates/edit_article.html`.
+*   [x] Refine extracted CSS to match the project's structure and context.
+*   [x] Install required Tiptap extensions (Link, Image, Table, Task List, Code Highlighting, etc.) and `lowlight`.
+*   [x] Analyze Tiptap configuration in `next-block-editor-app` example.
+*   [x] Update `main.ts`: Replace `StarterKit` with the detailed list of extensions from the example.
+*   [x] Update `main.ts`: Configure extensions (Link, Image, Placeholder, Table, CodeBlockLowlight) based on the example.
+*   [x] Update `edit_article.html`: Add HTML structure for the Tiptap toolbar (buttons, controls) based on the example.
+*   [x] Update `main.ts`: Implement toolbar button event listeners and Tiptap command execution.
+*   [x] Update `main.ts`: Implement toolbar button state updates (`is-active`) based on `editor.isActive()`.
+*   [x] Update `main.ts`: Implement basic UI logic for link editing.
+*   [x] Update `main.ts`: Implement basic UI logic for image insertion (using the already implemented upload).
+*   [x] Update `main.ts`: Implement basic UI logic for table insertion/modification.
+*   [ ] Implement missing toolbar buttons and logic (Highlight, Color, Align, Sub/Sup, etc.).
+*   [ ] Improve UI logic for link and table insertion (e.g., use modals).
 *   [ ] Test all integrated Tiptap features (formatting, links, images, tables, tasks, code blocks).
-*   [ ] Test Markdown loading (`marked`) and saving (`turndown`) with the new extensions.
+*   [x] Verify HTML saving from Tiptap and usage in generator.
 *   [ ] Test styling applied from the extracted CSS.
 
 ### Multilingual & Translation Pipeline (LLM)
 
 *   [ ] Implement translation service for LLM API (translate_text, generate_slug)
 *   [ ] Implement translation pipeline script:
-    *   [ ] For each article and each supported language, check and generate missing translations (title, content_md, slug)
+    *   [ ] For each article and each supported language, check and generate missing translations (title, content_html, slug)
     *   [ ] Store translations in MongoDB under translations[lang]
     *   [ ] Mark machine-generated translations (optional)
     *   [ ] Support dry-run and verbose logging modes

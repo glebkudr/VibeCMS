@@ -1,6 +1,7 @@
 // Frontend entry point (admin_app/frontend/src/main.ts)
 import './style.css'; // Import general styles
 import './toolbar.css'; // Import toolbar specific styles
+import './tiptap-editor.css'; // Import Tiptap editor styles
 
 // Remove Editor.js and old editor imports
 // import EditorJS, { type OutputData } from '@editorjs/editorjs';

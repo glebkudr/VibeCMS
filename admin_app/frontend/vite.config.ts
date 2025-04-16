@@ -4,7 +4,7 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => ({
   root: '.', // Source files are in admin_app/frontend
-  base: '/static/admin_dist/', // Base URL for assets in the browser
+  base: command === 'serve' ? '/' : '/static/admin_dist/', // Dynamic base for dev/prod
   optimizeDeps: {
     // Исключаем проблемные Milkdown плагины из предобработки (pre-bundling)
     exclude: [

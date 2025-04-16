@@ -78,6 +78,7 @@ lowlight.register('bash', bash);
 
 import { marked } from 'marked'; // Use named import if possible, check library export
 import TurndownService from 'turndown'; // Use default import if that's how it's exported
+import { log } from 'console';
 
 console.log('Admin frontend entry point loaded.');
 

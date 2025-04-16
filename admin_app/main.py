@@ -48,6 +48,8 @@ async def lifespan(app: FastAPI):
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.getLogger().setLevel(logging.INFO)
+logging.getLogger("admin_app.core.auth").setLevel(logging.INFO)
 
 app = FastAPI(
     title="Admin Panel API",

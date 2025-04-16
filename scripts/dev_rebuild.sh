@@ -1,5 +1,5 @@
 #!/bin/bash
-# Bash script to automate frontend build/dev and docker-compose restart
+# Dev-mode launcher: frontend watcher + backend (docker-compose with env.dev)
 set -e
 
 FRONTEND_DIR="admin_app/frontend"
@@ -7,19 +7,13 @@ PROJECT_ROOT="$(pwd)"
 
 cd "$FRONTEND_DIR"
 
-echo "[INFO] Killing old 'npm run dev' or 'vite' processes..."
-pkill -f "npm run dev" || true
-pkill -f "vite" || true
-
-echo "[INFO] Building frontend..."
-npm run build
-
-echo "[INFO] Starting 'npm run dev' in background..."
-nohup npm run dev > dev.log 2>&1 &
+echo "[INFO] Starting Vite build watcher (npm run watch)..."
+npm install
+npm run watch &
 
 cd "$PROJECT_ROOT"
 
-echo "[INFO] Running docker-compose..."
-docker-compose --env-file .env.dev up --build -d
+echo "[INFO] Running docker-compose with .env.dev..."
+docker-compose --env-file .env.dev up
 
-echo "[SUCCESS] All done!" 
+echo "[SUCCESS] Dev environment is running!" 

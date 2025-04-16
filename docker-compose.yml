@@ -58,6 +58,7 @@ services:
       CADDY_DOMAIN_NAME: localhost
       CADDY_HTTP_PORT: 80
       CADDY_HTTPS_PORT: 443
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
     depends_on:
       mongo:
         condition: service_started

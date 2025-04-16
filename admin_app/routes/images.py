@@ -46,8 +46,9 @@ async def upload_image(
             detail="Could not upload image to storage.",
         )
 
-    # Construct the URL - теперь начинается с /storage
-    image_url = f"/storage/{settings.MINIO_BUCKET_NAME}/{unique_filename}"
-    logger.info(f"Image '{unique_filename}' uploaded successfully. URL: {image_url}")
+    # Construct the absolute URL using PUBLIC_BASE_URL
+    relative_url = f"/storage/{settings.MINIO_BUCKET_NAME}/{unique_filename}"
+    absolute_url = f"{settings.PUBLIC_BASE_URL.rstrip('/')}{relative_url}"
+    logger.info(f"Image '{unique_filename}' uploaded successfully. Absolute URL: {absolute_url}")
 
-    return ImageUploadResponse(filename=unique_filename, url=image_url) 
+    return ImageUploadResponse(filename=unique_filename, url=absolute_url) 

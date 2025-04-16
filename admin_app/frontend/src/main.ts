@@ -361,6 +361,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async just i
                     const htmlContent = editor.getHTML(); // Get HTML from Tiptap
                     console.log('Tiptap HTML output for submission:', htmlContent);
 
+                    
+
                     // Remove Turndown conversion
                     /*
                     const turndownService = new TurndownService({ headingStyle: 'atx', bulletListMarker: '-' });

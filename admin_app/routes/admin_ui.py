@@ -16,7 +16,7 @@ from admin_app.main import get_templates
 # import bleach
 # Import Sanitizer and constants
 from html_sanitizer import Sanitizer
-from admin_app.core.html_sanitizer import ALLOWED_TAGS, ALLOWED_ATTRIBUTES
+from admin_app.core.html_sanitizer import ALLOWED_TAGS, ALLOWED_ATTRIBUTES, passthrough_url
 
 logger = logging.getLogger(__name__) # Added for logging
 
@@ -129,24 +129,25 @@ async def article_create_post(
         "updated_at": now,
         "versions": []
     }
-    # Create a reusable sanitizer instance with dynamically built attributes
-    dynamic_attributes = ALLOWED_ATTRIBUTES.copy() # Start with specific attributes
-    for tag in ALLOWED_TAGS:
-        allowed_for_tag = set(dynamic_attributes.get(tag, []))
-        allowed_for_tag.update(['class', 'style']) # Add class and style
-        dynamic_attributes[tag] = list(allowed_for_tag)
-
+    # Create a reusable sanitizer instance
     sanitizer_config = {
         'tags': set(ALLOWED_TAGS),
-        'attributes': dynamic_attributes, # Use the dynamically built dict
+        'attributes': ALLOWED_ATTRIBUTES, # Use original attributes
+        'empty': {'hr', 'br', 'img'},  # Add 'img' to allowed empty tags
+        'sanitize_href': passthrough_url,
+        # 'sanitize_src': passthrough_url, # This param doesn't exist
         # Add other html-sanitizer specific settings if needed
     }
     sanitizer = Sanitizer(sanitizer_config)
 
     try:
+        # Log FULL HTML before sanitization
+        logger.info(f"Received content_html for create (UI):\n{article_doc.get('content_html', '')}") # Log full content
         # Use html-sanitizer
         sanitized_html = sanitizer.sanitize(article_doc.get('content_html', ''))
         article_doc['content_html'] = sanitized_html
+        # Log HTML AFTER sanitization
+        logger.info(f"Sanitized content_html for create (UI):\n{sanitized_html}")
     except Exception as e:
         logger.error(f"Error sanitizing HTML content during UI article creation: {e}", exc_info=True)
         return templates.TemplateResponse("admin/article_create.html", {"request": request, "error": "Failed to process article content", "user": user}, status_code=500)
@@ -422,23 +423,23 @@ async def article_edit_post(
 
         # Sanitize HTML before saving update (important!)
         # Reuse the sanitizer instance or recreate if needed
-        # Using the same dynamic configuration logic
-        dynamic_attributes_update = ALLOWED_ATTRIBUTES.copy()
-        for tag in ALLOWED_TAGS:
-            allowed_for_tag = set(dynamic_attributes_update.get(tag, []))
-            allowed_for_tag.update(['class', 'style'])
-            dynamic_attributes_update[tag] = list(allowed_for_tag)
-
+        # Using the same simplified configuration logic
         sanitizer_config_update = {
             'tags': set(ALLOWED_TAGS),
-            'attributes': dynamic_attributes_update,
+            'attributes': ALLOWED_ATTRIBUTES, # Use original attributes
+            'empty': {'hr', 'br', 'img'},  # Add 'img' to allowed empty tags
+            'sanitize_href': passthrough_url,
+            # 'sanitize_src': passthrough_url, # This param doesn't exist
         }
         sanitizer_update = Sanitizer(sanitizer_config_update)
         try:
+            # Log FULL HTML before sanitization
+            logger.info(f"Received content_html for update (UI):\n{update_data.get('content_html', '')}") # Log full content
             # Use html-sanitizer
             sanitized_html = sanitizer_update.sanitize(update_data.get('content_html', ''))
-            # sanitized_html = bleach.clean(...)
             update_data['content_html'] = sanitized_html
+            # Log HTML AFTER sanitization
+            logger.info(f"Sanitized content_html for update (UI):\n{sanitized_html}")
         except Exception as e:
             logger.error(f"Error sanitizing HTML content during UI article update {article_id}: {e}", exc_info=True)
             # Re-render edit form with error (maybe add error to context?)

@@ -20,7 +20,7 @@ from bson import ObjectId
 # import bleach
 # Import Sanitizer and constants
 from html_sanitizer import Sanitizer
-from admin_app.core.html_sanitizer import ALLOWED_TAGS, ALLOWED_ATTRIBUTES
+from admin_app.core.html_sanitizer import ALLOWED_TAGS, ALLOWED_ATTRIBUTES, passthrough_url
 from admin_app.models import ArticleCreate, ArticleRead, ArticleUpdate, ArticleInDB, ArticleStatus
 from admin_app.core.auth import get_current_user
 
@@ -29,16 +29,13 @@ logger = logging.getLogger(__name__)
 # Remove prefix and tags here, they will be applied in main.py
 router = APIRouter()
 
-# Create a reusable sanitizer instance with dynamically built attributes
-dynamic_attributes_api = ALLOWED_ATTRIBUTES.copy()
-for tag in ALLOWED_TAGS:
-    allowed_for_tag = set(dynamic_attributes_api.get(tag, []))
-    allowed_for_tag.update(['class', 'style'])
-    dynamic_attributes_api[tag] = list(allowed_for_tag)
-
+# Create a reusable sanitizer instance
 sanitizer_config_api = {
     'tags': set(ALLOWED_TAGS),
-    'attributes': dynamic_attributes_api,
+    'attributes': ALLOWED_ATTRIBUTES, # Use original attributes
+    'empty': {'hr', 'br', 'img'},  # Add 'img' to allowed empty tags
+    'sanitize_href': passthrough_url,
+    # 'sanitize_src': passthrough_url, # This param doesn't exist
 }
 sanitizer_api = Sanitizer(sanitizer_config_api)
 
@@ -92,16 +89,13 @@ async def create_article(
 
     # Sanitize HTML content before saving
     try:
+        # Log FULL HTML before sanitization
+        logger.info(f"Received content_html for create (API):\n{article_doc.get('content_html', '')}") # Log full content
         # Use html-sanitizer
         sanitized_html = sanitizer_api.sanitize(article_doc.get('content_html', ''))
-        # sanitized_html = bleach.clean(
-        #     article_doc.get('content_html', ''),
-        #     tags=ALLOWED_TAGS,
-        #     attributes=ALLOWED_ATTRIBUTES,
-        #     # styles=ALLOWED_STYLES, # Removed
-        #     strip=True # Remove disallowed tags instead of escaping
-        # )
         article_doc['content_html'] = sanitized_html
+        # Log HTML AFTER sanitization
+        logger.info(f"Sanitized content_html for create (API):\n{sanitized_html}")
     except Exception as e:
         logger.error(f"Error sanitizing HTML content during article creation: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to process article content")
@@ -223,16 +217,13 @@ async def update_article(
         # Sanitize HTML content if it's being updated
         if 'content_html' in update_data:
             try:
+                # Log FULL HTML before sanitization
+                logger.info(f"Received content_html for update (API):\n{update_data.get('content_html', '')}") # Log full content
                 # Use html-sanitizer (reuse the same instance)
                 sanitized_html = sanitizer_api.sanitize(update_data['content_html'])
-                # sanitized_html = bleach.clean(
-                #     update_data['content_html'],
-                #     tags=ALLOWED_TAGS,
-                #     attributes=ALLOWED_ATTRIBUTES,
-                #     # styles=ALLOWED_STYLES, # Removed
-                #     strip=True
-                # )
                 update_data['content_html'] = sanitized_html
+                # Log HTML AFTER sanitization
+                logger.info(f"Sanitized content_html for update (API):\n{sanitized_html}")
             except Exception as e:
                 logger.error(f"Error sanitizing HTML content during article update {article_id}: {e}", exc_info=True)
                 raise HTTPException(status_code=500, detail="Failed to process article content")

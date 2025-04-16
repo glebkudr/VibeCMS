@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/mydatabase')
 MONGO_DB = os.getenv('MONGO_DATABASE', 'mydatabase')
 ARTICLES_COLLECTION = 'articles'
-STATIC_OUTPUT = 'static_output'
+# Используем абсолютный путь, который будет смонтирован из хоста
+STATIC_OUTPUT = '/app/static_output'
 TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 
 # Jinja2 env

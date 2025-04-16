@@ -23,6 +23,12 @@ ALLOWED_ATTRIBUTES = {
     'th': ['colspan', 'rowspan'],
     'td': ['colspan', 'rowspan'],
 }
+
+# Simple function to allow any URL (use with caution if source is untrusted)
+def passthrough_url(url):
+    """Returns the URL unchanged."""
+    return url
+
 # ALLOWED_STYLES is not used by html-sanitizer
 # ALLOWED_STYLES = [
 #     'color', 'background-color', 'font-family', 'text-align',

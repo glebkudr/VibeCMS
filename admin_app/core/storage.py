@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 s3_client = None
 
 def get_s3_client():
-    """Initializes and returns the Boto3 S3 client."""
+    """Initializes and returns the Boto3 S3 client. Ensures bucket exists."""
     global s3_client
     if s3_client is None:
         try:
@@ -22,12 +22,17 @@ def get_s3_client():
                 config=boto3.session.Config(signature_version='s3v4'), # Recommended for MinIO
                 region_name='us-east-1' # Default region, usually ignored by MinIO but can be required by boto3
             )
-            # Optional: Check connection by listing buckets (requires permissions)
-            # s3_client.list_buckets()
             logger.info("S3 client initialized successfully.")
+            # Ensure bucket exists
+            buckets = s3_client.list_buckets()
+            bucket_names = [b['Name'] for b in buckets.get('Buckets', [])]
+            if settings.MINIO_BUCKET_NAME not in bucket_names:
+                logger.info(f"Bucket '{settings.MINIO_BUCKET_NAME}' not found. Creating...")
+                s3_client.create_bucket(Bucket=settings.MINIO_BUCKET_NAME)
+                logger.info(f"Bucket '{settings.MINIO_BUCKET_NAME}' created.")
         except ClientError as e:
-            logger.error(f"Failed to initialize S3 client: {e}", exc_info=True)
-            raise RuntimeError("Could not connect to S3 storage.") from e
+            logger.error(f"Failed to initialize S3 client or create bucket: {e}", exc_info=True)
+            raise RuntimeError("Could not connect to S3 storage or create bucket.") from e
         except Exception as e:
             logger.error(f"An unexpected error occurred during S3 client initialization: {e}", exc_info=True)
             raise RuntimeError("Could not connect to S3 storage due to an unexpected error.") from e

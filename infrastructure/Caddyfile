@@ -8,45 +8,38 @@
 }
 
 (site_common) {
-	# Enable compression
-	encode gzip zstd
+    encode gzip zstd
 
-	# Serve static files from the mapped volume
-	@static {
-		path /*
-		not path /admin/* /images/*
-	}
-	file_server @static {
-		root /srv/static_output
-		index index.html index.htm
-	}
+    @static {
+        path /*
+        not path /admin/* /images/* /storage/*
+    }
+    file_server @static {
+        root /srv/static_output
+        index index.html index.htm
+    }
 
-	# Reverse proxy requests to the Admin Panel (FastAPI)
-	reverse_proxy /admin/* http://admin_app:8000
+    reverse_proxy /admin/* http://admin_app:8000
 
-	# Reverse proxy requests to MinIO for images
-	# The path rewrite removes /images/ prefix before forwarding to MinIO
-	# It expects the bucket name to be part of the path passed from MinIO client
-	# e.g., request to /images/my-bucket/image.png -> proxy to minio:9000/my-bucket/image.png
-	reverse_proxy /images/* http://minio:9000 {
-		header_up Host {http.request.host}
-	}
+    # ---- MinIO ----
+    handle_path /storage/* {
+        uri strip_prefix /storage      # /storage/images/… -> /images/…
+        reverse_proxy http://minio:9000 {
+            header_up Host minio:9000
+        }
+    }
 
-	# Basic logging
-	log {
-		output stdout
-		format console
-	}
+    log {
+        output stdout
+        format console
+    }
 }
 
-# Production: если CADDY_DOMAIN_NAME задан, будет HTTPS и домен
+# ---- сайты ----
 {$CADDY_DOMAIN_NAME}:80, {$CADDY_DOMAIN_NAME}:443 {
-	import site_common
+    import site_common
 }
 
-# Dev fallback: если переменная не задана, слушаем :80 (или :8080 через docker-compose)
-:80 {
-	import site_common
+:80 {                 # docker‑compose публикует 80 наружу как 8080
+    import site_common
 }
-
-# You can add other sites or configurations here if needed 

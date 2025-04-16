@@ -57,7 +57,7 @@ def authenticate_user(username: str, password: str) -> bool:
         return True
     return False
 
-def get_current_user(request: Request, token: str = Depends(oauth2_scheme)) -> str:
+def get_current_user(request: Request) -> str:
     """
     FastAPI dependency to get current user from JWT token.
     Tries to extract JWT from Authorization header (Bearer) or from 'admin_jwt' cookie.
@@ -69,17 +69,13 @@ def get_current_user(request: Request, token: str = Depends(oauth2_scheme)) -> s
         headers={"WWW-Authenticate": "Bearer"},
     )
     jwt_token = None
-    # 1. Try Authorization header (OAuth2)
-    if token:
-        logger.info(f"[AUTH] Authorization header present. Token starts with: {token[:10]}...")
-        jwt_token = token
+    # 1. Try Authorization header
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        jwt_token = auth_header[7:]
     else:
-        cookie_token = request.cookies.get("admin_jwt")
-        if cookie_token:
-            logger.info(f"[AUTH] No Authorization header. Cookie 'admin_jwt' present. Token starts with: {cookie_token[:10]}...")
-        else:
-            logger.warning("[AUTH] No Authorization header and no 'admin_jwt' cookie present.")
-        jwt_token = cookie_token
+        # 2. Try cookie
+        jwt_token = request.cookies.get("admin_jwt")
     if not jwt_token:
         logger.warning("No JWT token found in Authorization header or cookie.")
         raise credentials_exception

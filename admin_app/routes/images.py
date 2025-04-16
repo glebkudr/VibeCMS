@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from ..core.storage import upload_file_to_s3
 from admin_app.core.auth import get_current_user
+from admin_app.core.config import settings
 # We will add authentication dependency later
 # from ..core.security import get_current_username
 
@@ -45,9 +46,8 @@ async def upload_image(
             detail="Could not upload image to storage.",
         )
 
-    # Construct the URL - simple relative path for now
-    # Assumes Caddy proxies /images/ directly to the bucket root
-    image_url = f"/images/{unique_filename}"
+    # Construct the URL - теперь начинается с /storage
+    image_url = f"/storage/{settings.MINIO_BUCKET_NAME}/{unique_filename}"
     logger.info(f"Image '{unique_filename}' uploaded successfully. URL: {image_url}")
 
     return ImageUploadResponse(filename=unique_filename, url=image_url) 

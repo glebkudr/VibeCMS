@@ -336,9 +336,9 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async for ma
 
                     if (response.ok) {
                         const result = await response.json();
-                        if (result.image_url) {
-                            editor.chain().focus().setImage({ src: result.image_url }).run();
-                            console.log('Image uploaded and inserted:', result.image_url);
+                        if (result.url) {
+                            editor.chain().focus().setImage({ src: result.url }).run();
+                            console.log('Image uploaded and inserted:', result.url);
                         } else {
                             console.error('Image upload failed: URL not found in response.', result);
                             alert('Image upload failed: Could not get image URL.');

@@ -2,6 +2,17 @@
 
 > **Note:** All documentation, code comments, and commit messages in this project are written in **English**.
 
+## Target Audience and Use Cases
+
+This project is ideal for:
+
+*   **Individuals or small teams** who need a simple, self-hostable solution to manage content for a static website (like a blog, portfolio, or documentation site).
+*   **Developers** looking for a starting point or example of a Python/FastAPI-based content management system combined with a static site generator.
+*   Users who prefer a straightforward **WYSIWYG editor** experience (Tiptap) for content creation over writing Markdown directly.
+*   Situations where the **performance, security, and simplicity of a static website** are desired, but a dynamic admin interface is needed for content updates.
+
+It provides a balance between the ease of content management typically found in dynamic CMS platforms and the benefits of a static website architecture.
+
 This project implements a static website generator with a web-based admin panel for content management.
 
 ## 1. Core Idea and Data Flow
@@ -29,36 +40,36 @@ This project implements a static website generator with a web-based admin panel 
 
 ## 2. Directory Structure
 
-```
-my_project/
-│
-├── admin_app/                   # FastAPI application code (admin panel)
-│   ├── main.py                  # Application entry point (run with uvicorn)
-│   ├── models.py                # Pydantic/MongoEngine models
-│   ├── routes/                  # API route definitions
-│   │   ├── articles.py          # CRUD endpoints for articles
-│   │   └── images.py            # Image upload endpoint (to MinIO)
-│   └── requirements.txt         # Dependencies (fastapi, motor, boto3, etc.)
-│
-├── generator/                   # Static site generation script
-│   ├── generate.py              # Main generation script
-│   ├── templates/               # Jinja2 templates
-│   │   ├── base.html
-│   │   └── article.html
-│   └── requirements.txt         # Dependencies (markdown-it-py, jinja2, pymongo)
-│
-├── static_output/               # Output directory for generated static files
-│   └── ... (HTML files, assets)
-│
-├── infrastructure/              # Configuration files (Caddy, MinIO, Docker)
-│   ├── Caddyfile                # Caddy configuration for serving static files and proxying
-│   ├── docker-compose.yml       # Docker Compose setup (MinIO, MongoDB, Caddy, Admin)
-│   └── minio_config/            # (Optional) MinIO server config/data
-│
-├── README.md                    # This file
-├── TASKS.md                     # Implementation task list (in Russian)
-└── .env.example                 # Example environment variables
-```
+The project is organized into the following main components:
+
+**1. Admin Panel (`admin_app/`)**
+*   `admin_app/`: Contains the FastAPI backend code for the admin web interface and API.
+
+**2. Static Site Generator (`generator/`)**
+*   `generator/`: Holds the Python script and Jinja2 templates responsible for generating the static website from database content.
+
+**3. Static Site Output (`static_output/`)**
+*   `static_output/`: The target directory where the generated static HTML files are placed. This directory is served by Caddy to the public.
+
+**4. Infrastructure & Configuration (`infrastructure/`, Docker, Env)**
+*   `infrastructure/`: Stores configuration files, primarily the `Caddyfile`.
+*   `docker-compose.yml`: Defines the services (Admin, Caddy, MinIO, MongoDB) and their orchestration.
+*   `docker-compose.override.yml`: Provides development-specific overrides for the Docker Compose setup.
+*   `.env.example`, `.env.dev`: Environment variable configuration files.
+*   `.dockerignore`: Specifies files to exclude from Docker builds.
+
+**5. Development & Project Files**
+*   `design/`: Contains design documents related to architecture and features.
+*   `prompt/`: Files related to prompt engineering (if applicable).
+*   `scripts/`: Utility and helper scripts for development or deployment tasks.
+*   `specification/`: Project requirements and specifications.
+*   `testing/`: Contains tests for the project components.
+*   `node_modules/`, `package.json`, `package-lock.json`: Node.js related files (potentially for frontend assets or build tools).
+*   `.github/`: Configuration for GitHub Actions or other repository settings (optional).
+*   `.gitignore`: Specifies intentionally untracked files that Git should ignore.
+*   `LICENSE.md`: Project license information.
+*   `README.md`: This main documentation file.
+*   `TASKS.md`: List of development tasks.
 
 ## 3. Technology Stack
 

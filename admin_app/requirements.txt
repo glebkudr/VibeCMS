@@ -31,4 +31,7 @@ passlib[bcrypt]
 html-sanitizer>=2.0.0
 
 # HTML sanitization
-# bleach>=5.0.0 
+# bleach>=5.0.0
+
+# HTML parsing (for generator microtemplates)
+beautifulsoup4 

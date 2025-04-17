@@ -88,7 +88,7 @@ lowlight.register('bash', bash);
 import { log } from 'console';
 
 // Import Micro-Template Registry
-import microTemplates from '../../../shared/jinja_microtemplates.json';
+import microTemplates from '@shared/jinja_microtemplates.json';
 console.log('[DEBUG] Loaded microTemplates:', microTemplates); // LOG 1: Check loaded JSON
 
 // Helper types for registry (should eventually come from shared types)

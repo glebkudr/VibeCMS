@@ -40,6 +40,6 @@
     import site_common
 }
 
-:80 {                 # docker‑compose публикует 80 наружу как 8080
-    import site_common
-}
+# :80 {                 # docker‑compose публикует 80 наружу как 8080
+#    import site_common
+# }

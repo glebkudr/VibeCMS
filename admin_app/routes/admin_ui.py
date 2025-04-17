@@ -133,8 +133,9 @@ async def article_create_post(
     sanitizer_config = {
         'tags': set(ALLOWED_TAGS),
         'attributes': ALLOWED_ATTRIBUTES, # Use original attributes
-        'empty': {'hr', 'br', 'img'},  # Add 'img' to allowed empty tags
+        'empty': {'hr', 'br', 'img', 'span'},  # Add 'span' to allowed empty tags
         'sanitize_href': passthrough_url,
+        'element_preprocessors': [], # Disable default preprocessors (like span to strong/em)
         # 'sanitize_src': passthrough_url, # This param doesn't exist
         # Add other html-sanitizer specific settings if needed
     }
@@ -424,19 +425,19 @@ async def article_edit_post(
         # Sanitize HTML before saving update (important!)
         # Reuse the sanitizer instance or recreate if needed
         # Using the same simplified configuration logic
-        sanitizer_config_update = {
+        sanitizer_config = {
             'tags': set(ALLOWED_TAGS),
             'attributes': ALLOWED_ATTRIBUTES, # Use original attributes
-            'empty': {'hr', 'br', 'img'},  # Add 'img' to allowed empty tags
+            'empty': {'hr', 'br', 'img', 'span'},  # <-- Added 'span' to allowed empty tags
             'sanitize_href': passthrough_url,
-            # 'sanitize_src': passthrough_url, # This param doesn't exist
+            'element_preprocessors': [], # Disable default preprocessors (like span to strong/em)
         }
-        sanitizer_update = Sanitizer(sanitizer_config_update)
+        sanitizer = Sanitizer(sanitizer_config)
         try:
             # Log FULL HTML before sanitization
             logger.info(f"Received content_html for update (UI):\n{update_data.get('content_html', '')}") # Log full content
             # Use html-sanitizer
-            sanitized_html = sanitizer_update.sanitize(update_data.get('content_html', ''))
+            sanitized_html = sanitizer.sanitize(update_data.get('content_html', ''))
             update_data['content_html'] = sanitized_html
             # Log HTML AFTER sanitization
             logger.info(f"Sanitized content_html for update (UI):\n{sanitized_html}")

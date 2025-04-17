@@ -1,0 +1,18 @@
+{
+  "menu": {
+    "displayName": "Menu",
+    "description": "Main navigation menu",
+    "type": "block",
+    "attributes": {
+      "type": { "type": "string", "default": "main", "description": "Menu type (e.g., main, secondary)" }
+    },
+    "template": "menu.html"
+  },
+  "footer": {
+    "displayName": "Footer",
+    "description": "Page footer",
+    "type": "block",
+    "attributes": {},
+    "template": "footer.html"
+  }
+} 

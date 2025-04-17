@@ -87,6 +87,25 @@ lowlight.register('bash', bash);
 // import TurndownService from 'turndown';
 import { log } from 'console';
 
+// Import Micro-Template Registry
+import microTemplates from '../../../shared/jinja_microtemplates.json';
+console.log('[DEBUG] Loaded microTemplates:', microTemplates); // LOG 1: Check loaded JSON
+
+// Helper types for registry (should eventually come from shared types)
+type AttributeDefinition = {
+  type: string;
+  default: any;
+  description: string;
+};
+type MicroTemplateDefinition = {
+  displayName: string;
+  description: string;
+  type: 'block' | 'inline';
+  attributes: Record<string, AttributeDefinition>;
+  template: string;
+};
+type MicroTemplatesRegistry = Record<string, MicroTemplateDefinition>;
+
 console.log('Admin frontend entry point loaded.');
 
 // --- Define Slash Commands --- START ---
@@ -98,9 +117,12 @@ type CommandItem = {
   iconSVG?: string; // Optional SVG string for the icon
 };
 
-// Define the list of commands (example) with icons
+// Default icon for Jinja tags (e.g., puzzle piece or code brackets)
+const jinjaTagIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-code"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`;
+
+// Define the list of standard commands (example) with icons
 // Using Feather Icons SVG strings
-const slashCommands: CommandItem[] = [
+const baseSlashCommands: CommandItem[] = [
   {
     title: 'Heading 1', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run(), aliases: ['h1'],
     iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heading-1"><path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17 12h3"/><path d="m18.5 7 3 5 -3 5"/></svg>`
@@ -151,6 +173,19 @@ const slashCommands: CommandItem[] = [
   },
 ];
 
+// Generate commands from the micro-template registry
+const microTemplateCommands: CommandItem[] = Object.entries(microTemplates as MicroTemplatesRegistry).map(([key, definition]) => ({
+  title: definition.displayName, // Use displayName from registry
+  command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertJinjaTag({ name: key }).run(),
+  aliases: [key], // Use the key as an alias
+  iconSVG: jinjaTagIconSVG, // Use the default Jinja tag icon
+}));
+console.log('[DEBUG] Generated microTemplateCommands:', microTemplateCommands); // LOG 2: Check generated commands
+
+// Combine base commands and generated commands
+const slashCommands: CommandItem[] = [...baseSlashCommands, ...microTemplateCommands];
+console.log('[DEBUG] Final combined slashCommands:', slashCommands); // LOG 3: Check final command list
+
 // --- Define Slash Commands --- END ---
 
 // --- Create Vanilla JS Menu Renderer --- START ---
@@ -169,11 +204,14 @@ class SlashCommandMenuRenderer {
         this.element.addEventListener('click', this.handleClick);
         // Initial selection
         this.updateSelection(0);
+        console.log('[DEBUG] SlashCommandMenuRenderer created with props:', props); // LOG 5a: Menu renderer created
     }
 
     renderItems = () => {
+        console.log('[DEBUG] SlashCommandMenuRenderer renderItems called with items:', this.props.items); // LOG 5b: Items before rendering menu
         this.element.innerHTML = ''; // Clear previous items
         if (this.props.items.length === 0) {
+            console.log('[DEBUG] SlashCommandMenuRenderer - No items to render.'); // LOG 5c: No items case
             this.element.textContent = 'No commands found';
             return;
         }
@@ -309,13 +347,19 @@ const SlashCommandExtension = Extension.create<any>({
 
     const suggestionOptions: Omit<SuggestionOptions<CommandItem>, 'editor'> = {
         items: ({ query }) => {
-            return slashCommands
+            console.log(`[DEBUG] SlashCommand items function called with query: "${query}"`); // LOG 4a: Filter function called
+            // --- FIX: Re-combine commands inside the closure to ensure freshness ---\n            const currentSlashCommands = [...baseSlashCommands, ...microTemplateCommands];\n            console.log('[DEBUG] SlashCommand items - Re-combined list inside filter:', currentSlashCommands); // LOG 4a.1: Check re-combined list\n            // --- End FIX ---
+            const currentSlashCommands = [...baseSlashCommands, ...microTemplateCommands];
+            console.log('[DEBUG] SlashCommand items - Re-combined list inside filter:', currentSlashCommands); // LOG 4a.1: Check re-combined list
+            const filteredCommands = currentSlashCommands
                 .filter(item => {
                     const titleMatch = item.title.toLowerCase().startsWith(query.toLowerCase());
                     const aliasMatch = item.aliases?.some(alias => alias.toLowerCase().startsWith(query.toLowerCase()));
                     return titleMatch || aliasMatch;
                 })
-                .slice(0, 10);
+                .slice(0, 50);
+            console.log('[DEBUG] SlashCommand items filtered:', filteredCommands); // LOG 4b: Commands after filtering
+            return filteredCommands;
         },
         render: () => {
             return {
@@ -392,6 +436,9 @@ const SlashCommandExtension = Extension.create<any>({
 });
 
 // --- Create Custom Slash Command Extension --- END ---
+
+// Import our custom JinjaTag extension
+import { JinjaTag } from './tiptap/extensions/jinjaTag';
 
 document.addEventListener('DOMContentLoaded', async () => { // Keep async just in case, though marked is removed
     const editorElement = document.getElementById('editor');
@@ -503,6 +550,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async just i
                 Typography, // Apply typographic enhancements (e.g., smart quotes)
                 // Add the custom SlashCommandExtension
                 SlashCommandExtension, // No .configure() needed if using default options
+                // Add our JinjaTag extension
+                JinjaTag,
             ],
             content: initialContentHtml, // Set initial content (HTML)
             // autofocus: true, // Optional

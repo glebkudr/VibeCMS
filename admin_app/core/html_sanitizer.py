@@ -16,12 +16,14 @@ ALLOWED_TAGS = [
 ]
 ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title', 'target', 'rel'],
-    'img': ['src', 'alt', 'title', 'width', 'height'],
+    'img': ['src', 'alt', 'title', 'width', 'height', 'class'],
     'input': ['type', 'checked', 'disabled'],
     'code': ['class'],
     'pre': ['class'],
     'th': ['colspan', 'rowspan'],
     'td': ['colspan', 'rowspan'],
+    'span': ['data-jinja-tag', 'data-jinja-params', 'data-drag-handle'],
+    'p': ['style'],
 }
 
 # Simple function to allow any URL (use with caution if source is untrusted)

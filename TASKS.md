@@ -155,3 +155,15 @@ This file contains the list of tasks for developing the static site generator wi
 *   [ ] Prepare deployment instructions for a server.
 *   [ ] Set up CI/CD (optional).
 *   [ ] Set up backups for MongoDB and MinIO.
+
+## Phase X: Jinja2 Template Editor Integration (Tiptap + Micro-Templates)
+
+*   [ ] Create and populate `shared/jinja_microtemplates.json` as the single source of truth for all micro-templates (structure, parameters, template filename).
+*   [ ] Implement export of the registry for both Python (backend) and TypeScript (frontend) via `shared/` and `graphql-types/`.
+*   [ ] Create Jinja2 template files for each micro-template in `generator/templates/microtemplates/` (filenames as specified in the registry).
+*   [ ] Implement a universal Tiptap extension that dynamically generates custom nodes and slash-menu commands based on the registry.
+*   [ ] Update the admin panel editor UI to use the new micro-template system (insertion, editing, validation, hints).
+*   [ ] Update the static site generator to parse `{name: ...}` placeholders and render them using the corresponding Jinja2 templates and parameters.
+*   [ ] Implement a validator script that checks correspondence between the registry and template files (existence, parameter match).
+*   [ ] (Optional) Implement autogeneration of documentation for micro-templates from the registry (Markdown or HTML for editors/admins).
+*   [ ] Document the process for adding new micro-templates in the project documentation.

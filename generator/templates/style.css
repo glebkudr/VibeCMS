@@ -34,4 +34,79 @@ pre {
     padding: 1rem;
     border-radius: 6px;
     overflow-x: auto;
+}
+
+/* Basic Menu Styling */
+.main-menu {
+    background-color: #f8f8f8; /* Light grey background */
+    border-bottom: 1px solid #e7e7e7;
+    padding: 0 1rem; /* Add some padding */
+}
+
+.menu-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex; /* Arrange items horizontally */
+}
+
+.menu-item {
+    position: relative; /* Needed for absolute positioning of dropdown */
+    margin-right: 1px; /* Small gap between items */
+}
+
+.menu-link {
+    display: block;
+    padding: 0.8rem 1rem;
+    text-decoration: none;
+    color: #333;
+    background-color: #f0f0f0; /* Slightly darker item background */
+    border: 1px solid transparent;
+    border-bottom: none; /* Avoid double border with main menu bottom border */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.menu-link:hover {
+    background-color: #e7e7e7;
+    color: #000;
+}
+
+/* Dropdown Styling */
+.dropdown .dropdown-content {
+    display: none; /* Hidden by default */
+    position: absolute;
+    left: 0;
+    top: 100%; /* Position below the menu item */
+    background-color: #ffffff;
+    min-width: 200px; /* Set a minimum width */
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 10; /* Ensure dropdown is above other content */
+    border: 1px solid #e0e0e0;
+    padding: 0.5rem 0; /* Padding inside the dropdown box */
+}
+
+.dropdown-link {
+    display: block;
+    padding: 0.6rem 1rem;
+    text-decoration: none;
+    color: #333;
+    white-space: nowrap; /* Prevent wrapping */
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-link:hover {
+    background-color: #f1f1f1;
+}
+
+/* Show dropdown on hover */
+.menu-item.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Optional: Style for info message if menu fails */
+.menu-item-info span {
+    display: block;
+    padding: 0.8rem 1rem;
+    color: #888;
+    font-style: italic;
 } 

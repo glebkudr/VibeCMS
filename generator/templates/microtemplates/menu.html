@@ -1,8 +1,31 @@
-<nav class="menu menu-{{ type | default('main') }}">
-  <!-- TODO: Implement actual menu rendering logic based on 'type' -->
-  <p><strong>Menu Placeholder (type: {{ type | default('main') }})</strong></p>
-  <ul>
-    <li><a href="#">Example Link 1</a></li>
-    <li><a href="#">Example Link 2</a></li>
-  </ul>
+<nav class="main-menu">
+    <ul class="menu-items">
+        {# Iterate over menu data provided globally #}
+        {% for item in MENU_DATA %}
+            {# Only render the menu item if it has associated published articles #}
+            {% if item.articles %}
+                <li class="menu-item dropdown">
+                    {# Top-level item link - can be '#' or a future category page #}
+                    <a href="#" class="menu-link">{{ item.name }}</a>
+                    {# Dropdown container #}
+                    <div class="dropdown-content">
+                        {# Iterate over articles for this menu item #}
+                        {% for article in item.articles %}
+                            {# Ensure 'lang' variable is available in the rendering context #}
+                            {# Link to the article page for the current language #}
+                            <a href="/{{ lang | default('en') }}/{{ article.slug }}/" class="dropdown-link">{{ article.title }}</a>
+                        {% endfor %}
+                    </div>
+                </li>
+            {# Optional: Handle case where a menu tag exists but has no published articles #}
+            {# {% else %} #}
+            {# <li class="menu-item disabled"><span>{{ item.name }}</span></li> #}
+            {% endif %}
+        {% else %}
+            {# Optional: Display a message if MENU_DATA is empty or fails to load #}
+            <li class="menu-item-info">
+                <span>Menu structure not loaded.</span>
+            </li>
+        {% endfor %}
+    </ul>
 </nav> 

@@ -10,6 +10,9 @@ from bs4 import BeautifulSoup
 import sys
 from pathlib import Path
 
+# --- Import Menu Data Fetcher ---
+from generator.menu_data import fetch_menu_data # Changed to absolute import
+
 # --- Global Logging Setup --- Start ---
 def setup_logging():
     """
@@ -93,6 +96,15 @@ jinja_env = Environment(
     autoescape=select_autoescape(['html', 'xml'])
 )
 # --- Jinja2 env Setup --- End ---
+
+# --- Add Menu Data to Jinja2 Globals --- Start ---
+async def update_jinja_globals(db: AsyncIOMotorClient) -> None:
+    """Fetches dynamic data and updates Jinja2 environment globals."""
+    logger.info("Fetching menu data for Jinja2 globals...")
+    menu_data = await fetch_menu_data(db)
+    jinja_env.globals['MENU_DATA'] = menu_data
+    logger.info(f"Updated Jinja2 globals with {len(menu_data)} menu items.")
+# --- Add Menu Data to Jinja2 Globals --- End ---
 
 # Configure logger test
 # logger.critical("!!! GENERATOR LOGGER CONFIGURED !!!") 
@@ -216,12 +228,23 @@ def render_article_html(article: dict) -> str:
 def copy_static_assets():
     """
     Copy static assets (CSS, JS) to static_output.
+    (Currently only copies style.css)
     """
+    # Correct path to the single CSS file in the templates directory
     src = os.path.join(TEMPLATES_DIR, 'style.css')
     dst = os.path.join(STATIC_OUTPUT, 'style.css')
-    os.makedirs(os.path.dirname(dst), exist_ok=True)
-    shutil.copyfile(src, dst)
-    logger.info(f"Copied static asset: {dst}")
+
+    if not os.path.isfile(src):
+        logger.warning(f"Static asset not found: {src}. Skipping copy.")
+        return
+
+    try:
+        # Ensure the destination directory exists (root of STATIC_OUTPUT)
+        os.makedirs(STATIC_OUTPUT, exist_ok=True)
+        shutil.copyfile(src, dst)
+        logger.info(f"Copied static asset: {src} to {dst}")
+    except Exception as e:
+        logger.error(f"Error copying static asset {src} to {dst}: {e}", exc_info=True)
 
 async def generate():
     """
@@ -235,6 +258,9 @@ async def generate():
     # Ensure STATIC_OUTPUT exists before clearing (clear_static_output also does this)
     os.makedirs(STATIC_OUTPUT, exist_ok=True)
     clear_static_output() # Clear the output dir (log file is safe in /app/logs)
+
+    # --- Fetch data and update Jinja2 globals ---
+    await update_jinja_globals(db) # Added call to update globals
 
     articles = await fetch_published_articles(db)
     for article in articles:

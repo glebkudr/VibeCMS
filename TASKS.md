@@ -214,3 +214,15 @@ This file contains the list of tasks for developing the static site generator wi
 *   [ ] Implement a validator script that checks correspondence between the registry and template files (existence, parameter match).
 *   [ ] (Optional) Implement autogeneration of documentation for micro-templates from the registry (Markdown or HTML for editors/admins).
 *   [ ] Document the process for adding new micro-templates in the project documentation.
+
+## Dynamic Menu (Microtemplate)
+
+*   [x] Create utility function `get_published_articles_by_tag` in `generator/utils.py`.
+*   [x] Create module `fetch_menu_data` in `generator/menu_data.py` to prepare menu structure using tags `menu1`, `menu2`, `menu3`.
+*   [x] Update `generator/generate.py` to call `fetch_menu_data` and add `MENU_DATA` to Jinja2 global context.
+*   [x] Modify `generator/templates/microtemplates/menu.html` to render dynamic menu and dropdowns using `MENU_DATA`.
+*   [x] Add CSS styles for the menu and dropdowns in `generator/templates/style.css`.
+*   [x] Update `copy_static_assets` in `generator/generate.py` to copy the correct `style.css`.
+*   [x] Add this task section to `TASKS.md`.
+*   [ ] Test dynamic menu generation, hover effects, and links on generated pages.
+*   [ ] Ensure `lang` variable is correctly passed to `menu.html` context for link generation.

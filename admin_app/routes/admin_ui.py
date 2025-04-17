@@ -434,10 +434,11 @@ async def run_generator_script():
 
         process = await asyncio.create_subprocess_exec(
             python_executable,
-            script_path,
+            '-m',                   # Use the module execution flag
+            'generator.generate',   # Specify the module path
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            cwd=project_root # Set the current working directory
+            cwd=project_root        # Set the current working directory to project root (/app)
         )
         stdout, stderr = await process.communicate()
 

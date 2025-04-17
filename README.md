@@ -103,7 +103,39 @@ The project is organized into the following main components:
 12. Visitors access the website (e.g., `https://example.com`) and see the static HTML pages.
 13. Image URLs within the HTML content point to the Caddy `/images` reverse proxy, which serves them from MinIO.
 
-## 5. Running the Project (General Steps)
+## 5. Microtemplates
+
+This project supports "microtemplates" – reusable Jinja2 components that can be embedded directly into the article content via the text editor. This allows for dynamic content sections within static pages, such as menus, footers, call-to-action blocks, or other frequently used elements.
+
+**How it Works:**
+
+1.  **Registry:** A central registry file `shared/jinja_microtemplates.json` defines all available microtemplates, including their unique tag name, expected parameters, and the corresponding Jinja2 template file.
+2.  **Template Files:** The actual Jinja2 template files for each microtemplate are located in `generator/templates/microtemplates/`.
+3.  **Embedding in Editor:** Users can insert microtemplates into the article content (currently via raw HTML, editor integration planned) using a specific `<span>` tag format:
+    ```html
+    <span data-jinja-tag="your_template_tag" data-jinja-params='{"param1": "value1", "param2": 123}'></span>
+    ```
+    - `data-jinja-tag`: The unique name of the microtemplate as defined in the registry.
+    - `data-jinja-params`: A JSON string containing the parameters to pass to the Jinja2 template.
+4.  **Generation:** During the static site generation process (`generator/generate.py`):
+    - The script fetches the published article's `content_html`.
+    - It scans the HTML for `span[data-jinja-tag]` elements.
+    - For each found span, it looks up the tag in the registry.
+    - It loads the corresponding Jinja2 template from `generator/templates/microtemplates/`.
+    - It renders the template using the parameters provided in `data-jinja-params`.
+    - The original `<span>` tag is replaced with the rendered HTML output of the microtemplate.
+    - The final processed HTML is then used to render the complete article page.
+
+**Use Cases:**
+
+-   Consistent headers/footers across specific article types.
+-   Embedding dynamic lists (e.g., related articles, latest posts).
+-   Reusable content blocks or call-to-action sections.
+-   Inserting interactive elements requiring specific backend logic during generation.
+
+For technical details, see [Jinja2 Template Editor Architecture](design/jinja2_template_editor_architecture.md).
+
+## 6. Running the Project (General Steps)
 
 See [infrastructure/DEV_SETUP.md](infrastructure/DEV_SETUP.md) for detailed development setup instructions.
 

@@ -34,13 +34,15 @@ def setup_logging():
     stream_handler.setFormatter(logging.Formatter(log_fmt, datefmt=date_fmt))
     root_logger.addHandler(stream_handler)
 
-    # FileHandler - logs DEBUG and above
-    file_handler = logging.FileHandler(log_dir / "generator.log", encoding="utf-8")
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(logging.Formatter(log_fmt, datefmt=date_fmt))
-    root_logger.addHandler(file_handler)
+    # --- FileHandler (Commented Out) ---
+    # # FileHandler - logs DEBUG and above
+    # file_handler = logging.FileHandler(log_dir / "generator.log", encoding="utf-8")
+    # file_handler.setLevel(logging.DEBUG)
+    # file_handler.setFormatter(logging.Formatter(log_fmt, datefmt=date_fmt))
+    # root_logger.addHandler(file_handler)
+    # --- FileHandler (Commented Out) ---
 
-    print(f"--- Logging configured. Stream: INFO+, File: DEBUG+ at {log_dir / 'generator.log'} ---", file=sys.stderr, flush=True)
+    print(f"--- Logging configured. Stream: INFO+ ---", file=sys.stderr, flush=True) # Updated print
 
 # Setup logging immediately
 setup_logging()

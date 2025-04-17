@@ -1,0 +1,80 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin - Tags{% endblock %}
+
+{% block content %}
+<h1>Tags</h1>
+
+{# --- Create Tag Form --- #}
+<div style="margin-bottom: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 4px;">
+    <h2>Create New Tag</h2>
+    <form action="{{ url_for('create_tag_ui') }}" method="post">
+        {# TODO: Add CSRF token if using protection #}
+        <div style="margin-bottom: 0.5rem;">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" required style="width: 95%; padding: 0.3rem;">
+        </div>
+        <div style="margin-bottom: 0.5rem;">
+            <label for="slug">Slug:</label><br>
+            <input type="text" id="slug" name="slug" required pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$" title="Lowercase letters, numbers, and hyphens only" style="width: 95%; padding: 0.3rem;">
+            <small>(Lowercase letters, numbers, hyphens only)</small>
+        </div>
+        <div style="margin-bottom: 0.5rem;">
+            <label for="description">Description:</label><br>
+            <textarea id="description" name="description" rows="2" style="width: 95%; padding: 0.3rem;"></textarea>
+        </div>
+        <button type="submit" class="btn">Create Tag</button>
+        {% if create_error %}
+            <p style="color: red; margin-top: 0.5rem;">{{ create_error }}</p>
+        {% endif %}
+    </form>
+</div>
+{# --- End Create Tag Form --- #}
+
+<a href="#" class="btn" style="margin-bottom: 1rem;">Create New Tag</a> {# TODO: Link to create tag page/modal #}
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Slug</th>
+            <th>Description</th>
+            <th>System Tag</th>
+            <th>Required Fields</th>
+            <th>Articles</th> {# Optional: Count or link #}
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tag in tags %}
+        <tr>
+            <td>{{ tag.name }}</td>
+            <td>{{ tag.slug }}</td>
+            <td>{{ tag.description | default('', true) }}</td>
+            <td>{{ 'Yes' if tag.is_system else 'No' }}</td>
+            <td>{{ tag.required_fields | join(', ') if tag.required_fields else '-' }}</td>
+            <td>
+                {# TODO: Add count or link to articles with this tag #}
+                <a href="/admin/tags/{{ tag.slug }}/articles">View Articles</a> {# Example link #}
+            </td>
+            <td>
+                {% if not tag.is_system %}
+                    <a href="#" class="btn">Edit</a> {# TODO: Link to edit tag page #}
+                    <form action="/admin/tags/{{ tag.slug }}/delete" method="post" style="display:inline;">
+                        {# TODO: Add CSRF token #}
+                        <button type="submit" class="btn danger" onclick="return confirm('Are you sure you want to delete this tag?');">Delete</button>
+                    </form>
+                {% else %}
+                    (System)
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7">No tags found. {% if error %}<span style="color: red;">{{ error }}</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %} 

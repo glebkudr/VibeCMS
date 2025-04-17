@@ -185,6 +185,7 @@ async def update_article(
     Updates an article by its ID.
     The previous state is saved in the 'versions' list.
     Sanitizes HTML content if provided.
+    Validates and updates associated tags.
     """
     try:
         oid = ObjectId(article_id)
@@ -199,20 +200,49 @@ async def update_article(
             logger.warning(f"Article not found for update with ID: {article_id}")
             raise HTTPException(status_code=404, detail=f"Article not found: {article_id}")
 
-        # Create the previous version entry (using content_html)
+        # Create the previous version entry (using content_html and tags)
         prev_version = {
             "title": existing_doc["title"],
             "slug": existing_doc["slug"],
             "content_html": existing_doc.get("content_html", ""), # Use content_html
             "status": existing_doc.get("status", ArticleStatus.DRAFT),
+            "tags": existing_doc.get("tags", []),
+            "cover_image": existing_doc.get("cover_image"), # Add cover_image
+            "headline": existing_doc.get("headline"),       # Add headline
             "updated_at": existing_doc["updated_at"]
         }
 
         # Prepare update data: only include fields that were actually sent
-        update_data = article_update.dict(exclude_unset=True)
+        update_data = article_update.model_dump(exclude_unset=True)
         if not update_data:
             logger.info(f"No update data provided for article {article_id}. Returning current state.")
             return to_article_read(existing_doc) # Or raise 400 Bad Request?
+
+        # --- Tag Validation --- #
+        if "tags" in update_data:
+            new_tags = update_data.get("tags", [])
+            if not isinstance(new_tags, list):
+                raise HTTPException(status_code=400, detail="Tags must be a list of strings (slugs).")
+
+            if new_tags: # Only query if there are tags to validate
+                tags_collection = db.get_collection("tags")
+                # Find tags that match the provided slugs
+                valid_tags_cursor = tags_collection.find({"slug": {"$in": new_tags}}, {"slug": 1})
+                valid_tag_slugs = {tag["slug"] async for tag in valid_tags_cursor}
+
+                invalid_tags = [slug for slug in new_tags if slug not in valid_tag_slugs]
+                if invalid_tags:
+                    logger.warning(f"Attempt to assign invalid tags {invalid_tags} to article {article_id}")
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"The following tags do not exist: {', '.join(invalid_tags)}"
+                    )
+                # Ensure uniqueness and sort? (Optional)
+                update_data["tags"] = sorted(list(set(new_tags)))
+            else:
+                # Explicitly setting tags to an empty list
+                update_data["tags"] = []
+        # --- End Tag Validation --- #
 
         # Sanitize HTML content if it's being updated
         if 'content_html' in update_data:
@@ -248,15 +278,13 @@ async def update_article(
             logger.error(f"Failed to fetch updated article {article_id} after successful update.")
             raise HTTPException(status_code=500, detail="Failed to retrieve updated article")
 
-        logger.info(f"Article updated successfully: {article_id}")
+        logger.info(f"Successfully updated article {article_id}")
         return to_article_read(updated_doc)
-
-    except HTTPException as http_exc:
-        raise http_exc # Re-raise client errors (400, 404)
+    except HTTPException as http_exc: # Re-raise HTTP exceptions
+        raise http_exc
     except Exception as e:
         logger.error(f"Error updating article {article_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to update article")
-
 
 @router.delete(
     "/articles/{article_id}",
@@ -278,12 +306,10 @@ async def delete_article(
     try:
         result = await db.articles.delete_one({"_id": oid})
         if result.deleted_count == 0:
-            logger.warning(f"Article not found for deletion with ID: {article_id}")
+            logger.warning(f"Article not found for delete with ID: {article_id}")
             raise HTTPException(status_code=404, detail=f"Article not found: {article_id}")
-
-        logger.info(f"Article deleted successfully: {article_id}")
-        # No content to return for 204
-        return
+        logger.info(f"Successfully deleted article with ID: {article_id}")
+        return # Return 204 No Content
     except Exception as e:
         logger.error(f"Error deleting article {article_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to delete article")

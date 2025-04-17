@@ -84,6 +84,10 @@ Implement a static site generator that fetches all published articles from Mongo
 - [Python logging](https://docs.python.org/3/library/logging.html)
 - [hreflang SEO best practices](https://ahrefs.com/blog/hreflang/)
 
+## Tag System for Article Placement
+
+See the dedicated design document: [Article Tag System Design](tags_system_design.md)
+
 ---
 
 *This document describes the design and implementation plan for the multilingual static site generator (Phase 3) using an async MongoDB client. All implementation should follow this design for consistency and maintainability.* 

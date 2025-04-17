@@ -142,6 +142,53 @@ This file contains the list of tasks for developing the static site generator wi
 *   [ ] Test translation pipeline and multilingual static generation
 *   [ ] Update documentation and .env.example for LLM API and multilingual support
 
+## Article Tag System (for placement)
+
+*   [x] Define design for tag system (models, sync, required fields) in `design/static_generator_design.md`.
+*   [x] Create `shared/system_tags.json` with initial system tags (headliner, suggested_articles, menu1, menu2, menu3).
+*   [x] Update `admin_app/models.py`:
+    *   [x] Define Pydantic model `Tag` (with `slug`, `name`, `description`, `is_system`, `required_fields`).
+    *   [x] Add `tags: List[str]` field (list of tag slugs) to `ArticleInDB` and related models.
+*   [x] Implement system tag synchronization logic on admin startup:
+    *   [x] Load tags from `shared/system_tags.json`.
+    *   [x] Load tags from DB.
+    *   [x] Perform one-way sync (add missing system tags, update `is_system` flag).
+*   [x] Implement backend API for tags (`admin_app/routes/tags.py`):
+    *   [x] GET `/api/admin/tags`: List all tags (with flag for system tags).
+    *   [x] POST `/api/admin/tags`: Create a new non-system tag.
+    *   [x] PUT `/api/admin/tags/{tag_slug}`: Update a non-system tag (name, description).
+    *   [x] DELETE `/api/admin/tags/{tag_slug}`: Delete a non-system tag (only if not system).
+    *   [x] GET `/api/admin/tags/{tag_slug}/articles`: List articles associated with a tag.
+*   [x] Implement backend logic for article-tag association:
+    *   [x] Update article CRUD (PUT `/api/admin/articles/{article_id}`) to handle `tags` field.
+    *   [x] Add endpoint/logic to assign/unassign tags to articles (e.g., in article editor or tag view).
+*   [ ] Update Admin UI (FastAPI + Jinja2):
+    *   [x] Add \"Tags\" section to the admin menu.
+    *   [x] Create tag list page (`/admin/tags`):
+        *   [x] Display list of tags (mark system tags).
+        *   [x] Allow creating new non-system tags.
+        *   [x] Allow editing/deleting non-system tags.
+        *   [ ] Show number of articles per tag (link to filtered list).
+    *   [ ] Create tag view/edit page (`/admin/tags/{tag_slug}`):
+        *   [ ] Show tag details (name, description, required fields).
+        *   [ ] List associated articles.
+        *   [ ] Allow adding/removing articles from the tag.
+        *   [ ] Show warnings for articles missing required fields for this tag.
+    *   [ ] Update article editor (`/admin/articles/edit/{article_id}`):
+        *   [x] Add multi-select dropdown/checkbox group to assign tags.
+        *   [x] Display warnings if assigned tags have unmet required fields for this article.
+    *   [ ] Update article list page (`/admin/articles`):
+        *   [ ] (Optional) Display tags for each article.
+        *   [ ] (Optional) Add filtering by tag.
+*   [ ] Update Static Generator (`generator/generate.py`):
+    *   [ ] Create `index.html` template for the homepage.
+    *   [ ] Fetch articles by tag (e.g., `headliner`, `suggested_articles`) from MongoDB.
+    *   [ ] Pass tagged articles to the `index.html` template.
+    *   [ ] Render `static_output/index.html`.
+    *   [ ] (Optional) Create a reusable microtemplate (`article_list_by_tag.html`) to render article lists based on a tag slug.
+    *   [ ] (Optional) Use tags to generate menu structures or category pages.
+*   [ ] Test the entire workflow: create/edit tags, assign tags, check warnings, generate static site, verify homepage content based on tags.
+
 ## Phase 4: Testing and Refinement
 
 *   [ ] Test the full cycle: create article -> upload image -> publish -> run generator -> check static site and image accessibility.

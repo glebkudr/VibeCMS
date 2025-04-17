@@ -1,0 +1,32 @@
+[
+  {
+    "slug": "headliner",
+    "name": "Headliner",
+    "description": "Main article on the homepage",
+    "required_fields": ["cover_image", "headline"]
+  },
+  {
+    "slug": "suggested_articles",
+    "name": "Suggested Articles",
+    "description": "Articles suggested below the headliner on the homepage",
+    "required_fields": ["cover_image", "headline"]
+  },
+  {
+    "slug": "menu1",
+    "name": "Menu 1",
+    "description": "Articles for the first menu category",
+    "required_fields": ["headline"]
+  },
+  {
+    "slug": "menu2",
+    "name": "Menu 2",
+    "description": "Articles for the second menu category",
+    "required_fields": ["headline"]
+  },
+  {
+    "slug": "menu3",
+    "name": "Menu 3",
+    "description": "Articles for the third menu category",
+    "required_fields": ["headline"]
+  }
+] 

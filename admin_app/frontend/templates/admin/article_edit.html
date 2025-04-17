@@ -108,11 +108,52 @@
     <div style="margin-bottom: 1rem;">
         <label for="status">Status:</label><br>
         <select id="status" name="status" style="width: 100%; padding: 0.5rem;">
-            {# Pre-select the current status #}
-            <option value="draft" {% if article.status == 'draft' %}selected{% endif %}>Draft</option>
-            <option value="published" {% if article.status == 'published' %}selected{% endif %}>Published</option>
+            {# Pre-select the current status by comparing its value #}
+            <option value="draft" {% if article.status.value == 'draft' %}selected{% endif %}>Draft</option>
+            <option value="published" {% if article.status.value == 'published' %}selected{% endif %}>Published</option>
+            <option value="archived" {% if article.status.value == 'archived' %}selected{% endif %}>Archived</option> {# Add archived option #}
         </select>
     </div>
+
+    {# --- Tag Selection --- #}
+    <div style="margin-bottom: 1rem;">
+        <label>Tags:</label><br>
+        <div style="border: 1px solid #ccc; padding: 0.5rem; max-height: 150px; overflow-y: auto;">
+            {% if all_tags %}
+                {% for tag in all_tags %}
+                    <div style="margin-bottom: 0.25rem;">
+                        <input type="checkbox"
+                               id="tag-{{ tag.slug }}"
+                               name="tags"
+                               value="{{ tag.slug }}"
+                               {% if tag.slug in article.tags %}checked{% endif %}
+                        >
+                        <label for="tag-{{ tag.slug }}">
+                            {{ tag.name | e }} (<code>{{ tag.slug }}</code>)
+                            {% if tag.is_system %}<span style="color: #666; font-size: 0.8em;"> [System]</span>{% endif %}
+                            {# Required Fields Warning #}
+                            {% if tag.required_fields %}
+                                {% set missing_fields = [] %}
+                                {% for field in tag.required_fields %}
+                                    {# Check if field exists and is not empty/None using subscript notation #}
+                                    {% if not article[field] %}
+                                        {% set _ = missing_fields.append(field) %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if missing_fields %}
+                                    <span style="color: orange; font-size: 0.8em; margin-left: 5px;" title="Article is missing required fields for this tag">⚠️ Requires: {{ missing_fields | join(', ') }}</span>
+                                {% endif %}
+                            {% endif %}
+                        </label>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No tags available.</p>
+            {% endif %}
+        </div>
+    </div>
+    {# --- End Tag Selection --- #}
+
     <button type="submit" class="btn">Update Article</button>
     <a href="/admin/articles/{{ article.id }}" style="margin-left: 1rem;">Cancel</a>
 </form>

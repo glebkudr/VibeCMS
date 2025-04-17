@@ -6,6 +6,7 @@ import logging # Import logging
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from admin_app.core.vite import register_vite_env # Import the vite helper registration
+from admin_app.core.system_tags import sync_system_tags # Import the sync function
 
 """
 Architectural decision:
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI):
     """
     FastAPI application lifespan context.
     Initializes and closes the MongoDB client.
+    Runs system tag synchronization after DB connection.
     """
     try:
         app.state.mongo_client = AsyncIOMotorClient(MONGO_URI)
@@ -33,8 +35,14 @@ async def lifespan(app: FastAPI):
         await app.state.mongo_client.admin.command('ismaster')
         app.state.mongo_db = app.state.mongo_client[MONGO_DATABASE]
         logger.info("MongoDB connection established.")
+
+        # Run system tag synchronization
+        logger.info("Running system tag synchronization...")
+        await sync_system_tags(app.state.mongo_db)
+        logger.info("System tag synchronization finished.")
+
     except Exception as e:
-        logger.error(f"Failed to connect to MongoDB: {e}")
+        logger.error(f"Error during application startup (DB connection or tag sync): {e}")
         # Optionally re-raise or handle differently to prevent app start?
         # For now, just log the error.
         app.state.mongo_client = None
@@ -82,10 +90,12 @@ from admin_app.routes import articles
 from admin_app.routes import images
 from admin_app.routes import auth
 from admin_app.routes import admin_ui # This will now use the configured templates via Depends
+from admin_app.routes import tags # Import the new tags router
 
 app.include_router(auth.router, prefix="/api/admin", tags=["Auth"])
 app.include_router(articles.router, prefix="/api/admin", tags=["Articles"])
 app.include_router(images.router, prefix="/api/admin", tags=["Images"])
+app.include_router(tags.router, prefix="/api/admin", tags=["Tags"]) # Add the tags router
 app.include_router(admin_ui.router)
 
 # Example usage of the client in endpoints:

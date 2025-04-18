@@ -33,19 +33,19 @@ def setup_logging():
 
     # StreamHandler (stderr) - logs INFO and above
     stream_handler = logging.StreamHandler(sys.stderr)
-    stream_handler.setLevel(logging.INFO)
+    stream_handler.setLevel(logging.DEBUG)
     stream_handler.setFormatter(logging.Formatter(log_fmt, datefmt=date_fmt))
     root_logger.addHandler(stream_handler)
 
-    # --- FileHandler (Commented Out) ---
-    # # FileHandler - logs DEBUG and above
-    # file_handler = logging.FileHandler(log_dir / "generator.log", encoding="utf-8")
-    # file_handler.setLevel(logging.DEBUG)
-    # file_handler.setFormatter(logging.Formatter(log_fmt, datefmt=date_fmt))
-    # root_logger.addHandler(file_handler)
-    # --- FileHandler (Commented Out) ---
+    # --- FileHandler ---
+    # FileHandler - logs DEBUG and above
+    file_handler = logging.FileHandler(log_dir / "generator.log", encoding="utf-8")
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter(log_fmt, datefmt=date_fmt))
+    root_logger.addHandler(file_handler)
+    # --- FileHandler ---
 
-    print(f"--- Logging configured. Stream: INFO+ ---", file=sys.stderr, flush=True) # Updated print
+    print(f"--- Logging configured. Stream: DEBUG+, File: DEBUG+ ---", file=sys.stderr, flush=True)
 
 # Setup logging immediately
 setup_logging()
@@ -93,7 +93,8 @@ jinja_env = Environment(
         FileSystemLoader(TEMPLATES_DIR),
         FileSystemLoader(MICROTEMPLATES_DIR)
     ]),
-    autoescape=select_autoescape(['html', 'xml'])
+    autoescape=select_autoescape(['html', 'xml']),
+    auto_reload=True
 )
 # --- Jinja2 env Setup --- End ---
 
@@ -102,8 +103,9 @@ async def update_jinja_globals(db: AsyncIOMotorClient) -> None:
     """Fetches dynamic data and updates Jinja2 environment globals."""
     logger.info("Fetching menu data for Jinja2 globals...")
     menu_data = await fetch_menu_data(db)
-    jinja_env.globals['MENU_DATA'] = menu_data
+    jinja_env.globals["MENU_DATA"] = menu_data
     logger.info(f"Updated Jinja2 globals with {len(menu_data)} menu items.")
+    logger.debug(f"MENU_DATA set in globals: {menu_data}") # DEBUG LOG ADDED
 # --- Add Menu Data to Jinja2 Globals --- End ---
 
 # Configure logger test
@@ -261,6 +263,7 @@ async def generate():
 
     # --- Fetch data and update Jinja2 globals ---
     await update_jinja_globals(db) # Added call to update globals
+    logger.debug(f"Jinja globals after update: {list(jinja_env.globals.keys())}") # DEBUG LOG ADDED
 
     articles = await fetch_published_articles(db)
     for article in articles:

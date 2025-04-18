@@ -49,6 +49,7 @@ async def fetch_menu_data(db: AsyncIOMotorDatabase, limit_articles: Optional[int
 
         # Create TagRead objects for easier access
         menu_tags = {tag_data['slug']: TagRead(**tag_data) for tag_data in menu_tags_data}
+        logger.debug(f"Constructed TagRead objects for slugs: {list(menu_tags.keys())}")
 
         # Fetch articles for each menu tag slug in the defined order
         for tag_slug in MENU_TAG_SLUGS:
@@ -69,6 +70,7 @@ async def fetch_menu_data(db: AsyncIOMotorDatabase, limit_articles: Optional[int
                 logger.warning(f"System tag with slug '{tag_slug}' defined in MENU_TAG_SLUGS not found in the database or not marked as system.")
 
         logger.info(f"Successfully prepared data for {len(menu_items)} menu items.")
+        logger.debug(f"Returning menu_items structure: {menu_items}")
         return menu_items
 
     except Exception as e:

@@ -35,3 +35,24 @@ def passthrough_url(url):
 # ALLOWED_STYLES = [
 #     'color', 'background-color', 'font-family', 'text-align',
 # ] 
+
+# --- Common Sanitizer Settings ---
+_BASE_CONFIG = {
+    'tags': set(ALLOWED_TAGS),
+    'attributes': ALLOWED_ATTRIBUTES,
+    'sanitize_href': passthrough_url,
+    'strip': False,
+    'allow_comments': False,
+    'empty': {'hr', 'br', 'img', 'span', 'p'},  # Tags allowed to be empty
+    'element_preprocessors': [], # Disable default preprocessors (like span to strong/em)
+}
+
+# --- Default Sanitizer Configuration (Unified for API & UI) --- 
+DEFAULT_SANITIZER_CONFIG = {
+    **_BASE_CONFIG, 
+    # Add any other specific overrides if needed in the future
+}
+
+# Remove old separate configs
+# SANITIZER_CONFIG_API = ...
+# SANITIZER_CONFIG_UI = ... 

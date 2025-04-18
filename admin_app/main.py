@@ -54,10 +54,30 @@ async def lifespan(app: FastAPI):
         app.state.mongo_client.close()
         logger.info("MongoDB connection closed.")
 
-# Configure basic logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logging.getLogger().setLevel(logging.INFO)
-logging.getLogger("admin_app.core.auth").setLevel(logging.INFO)
+# --- Logging Configuration --- Start ---
+log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+date_fmt = '%Y-%m-%d %H:%M:%S'
+
+root_logger = logging.getLogger() # Get root logger
+root_logger.setLevel(logging.DEBUG) # Keep root logger level at DEBUG
+
+# Clear existing handlers (important if using reload)
+if root_logger.hasHandlers():
+    root_logger.handlers.clear()
+
+# Console Handler (INFO level)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO) # Keep console at INFO
+console_formatter = logging.Formatter(log_fmt, datefmt=date_fmt)
+console_handler.setFormatter(console_formatter)
+root_logger.addHandler(console_handler)
+
+# Optionally set specific library loggers to WARNING or ERROR if needed
+# logging.getLogger("pymongo").setLevel(logging.WARNING)
+# logging.getLogger("uvicorn").setLevel(logging.INFO)
+
+logger.info("Logging configured: Console=INFO+") # Update info message
+# --- Logging Configuration --- End ---
 
 app = FastAPI(
     title="Admin Panel API",

@@ -45,6 +45,7 @@ services:
       - "8000:8000"
     volumes:
       - ./static_output:/app/static_output
+      - ./generator/templates:/app/generator/templates:ro
     environment:
       MONGO_URI: mongodb://mongo:27017/mydatabase
       MONGO_DATABASE: mydatabase

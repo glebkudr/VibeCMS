@@ -20,7 +20,10 @@ from bson import ObjectId
 # import bleach
 # Import Sanitizer and constants
 from html_sanitizer import Sanitizer
-from admin_app.core.html_sanitizer import ALLOWED_TAGS, ALLOWED_ATTRIBUTES, passthrough_url
+# Import the unified config
+from admin_app.core.html_sanitizer import DEFAULT_SANITIZER_CONFIG
+# Remove unused imports
+# from admin_app.core.html_sanitizer import ALLOWED_TAGS, ALLOWED_ATTRIBUTES, passthrough_url
 from admin_app.models import ArticleCreate, ArticleRead, ArticleUpdate, ArticleInDB, ArticleStatus
 from admin_app.core.auth import get_current_user
 
@@ -28,16 +31,6 @@ logger = logging.getLogger(__name__)
 
 # Remove prefix and tags here, they will be applied in main.py
 router = APIRouter()
-
-# Create a reusable sanitizer instance
-sanitizer_config_api = {
-    'tags': set(ALLOWED_TAGS),
-    'attributes': ALLOWED_ATTRIBUTES, # Use original attributes
-    'empty': {'hr', 'br', 'img'},  # Add 'img' to allowed empty tags
-    'sanitize_href': passthrough_url,
-    # 'sanitize_src': passthrough_url, # This param doesn't exist
-}
-sanitizer_api = Sanitizer(sanitizer_config_api)
 
 def get_db(request: Request):
     """Dependency to get the database client from the request state."""
@@ -89,13 +82,14 @@ async def create_article(
 
     # Sanitize HTML content before saving
     try:
-        # Log FULL HTML before sanitization
-        logger.info(f"Received content_html for create (API):\n{article_doc.get('content_html', '')}") # Log full content
-        # Use html-sanitizer
-        sanitized_html = sanitizer_api.sanitize(article_doc.get('content_html', ''))
+        # Log FULL HTML before sanitization at DEBUG level
+        logger.debug(f"Original HTML (API Create):\n{article_doc.get('content_html', '')}") 
+        # Create sanitizer instance with the default config
+        sanitizer = Sanitizer(DEFAULT_SANITIZER_CONFIG)
+        sanitized_html = sanitizer.sanitize(article_doc.get('content_html', ''))
         article_doc['content_html'] = sanitized_html
-        # Log HTML AFTER sanitization
-        logger.info(f"Sanitized content_html for create (API):\n{sanitized_html}")
+        # Log HTML AFTER sanitization at DEBUG level
+        logger.debug(f"Sanitized HTML (API Create):\n{sanitized_html}") 
     except Exception as e:
         logger.error(f"Error sanitizing HTML content during article creation: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to process article content")
@@ -247,13 +241,14 @@ async def update_article(
         # Sanitize HTML content if it's being updated
         if 'content_html' in update_data:
             try:
-                # Log FULL HTML before sanitization
-                logger.info(f"Received content_html for update (API):\n{update_data.get('content_html', '')}") # Log full content
-                # Use html-sanitizer (reuse the same instance)
-                sanitized_html = sanitizer_api.sanitize(update_data['content_html'])
+                # Log FULL HTML before sanitization at DEBUG level
+                logger.debug(f"Original HTML (API Update {article_id}):\n{update_data.get('content_html', '')}") 
+                # Create sanitizer instance with the default config
+                sanitizer = Sanitizer(DEFAULT_SANITIZER_CONFIG)
+                sanitized_html = sanitizer.sanitize(update_data['content_html'])
                 update_data['content_html'] = sanitized_html
-                # Log HTML AFTER sanitization
-                logger.info(f"Sanitized content_html for update (API):\n{sanitized_html}")
+                # Log HTML AFTER sanitization at DEBUG level
+                logger.debug(f"Sanitized HTML (API Update {article_id}):\n{sanitized_html}") 
             except Exception as e:
                 logger.error(f"Error sanitizing HTML content during article update {article_id}: {e}", exc_info=True)
                 raise HTTPException(status_code=500, detail="Failed to process article content")

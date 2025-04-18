@@ -16,7 +16,8 @@ from admin_app.main import get_templates
 # import bleach
 # Import Sanitizer and constants
 from html_sanitizer import Sanitizer
-from admin_app.core.html_sanitizer import ALLOWED_TAGS, ALLOWED_ATTRIBUTES, passthrough_url
+# Import the unified config
+from admin_app.core.html_sanitizer import DEFAULT_SANITIZER_CONFIG
 from admin_app.core.utils import convert_objectid_to_str
 from typing import Optional, List
 
@@ -280,26 +281,17 @@ async def article_create_post(
         "updated_at": now,
         "versions": []
     }
-    # Create a reusable sanitizer instance
-    sanitizer_config = {
-        'tags': set(ALLOWED_TAGS),
-        'attributes': ALLOWED_ATTRIBUTES, # Use original attributes
-        'empty': {'hr', 'br', 'img', 'span'},  # Add 'span' to allowed empty tags
-        'sanitize_href': passthrough_url,
-        'element_preprocessors': [], # Disable default preprocessors (like span to strong/em)
-        # 'sanitize_src': passthrough_url, # This param doesn't exist
-        # Add other html-sanitizer specific settings if needed
-    }
-    sanitizer = Sanitizer(sanitizer_config)
+    # Create sanitizer instance with the default config
+    sanitizer = Sanitizer(DEFAULT_SANITIZER_CONFIG)
 
     try:
-        # Log FULL HTML before sanitization
-        logger.info(f"Received content_html for create (UI):\n{article_doc.get('content_html', '')}") # Log full content
+        # Log FULL HTML before sanitization at DEBUG level
+        logger.debug(f"Original HTML (UI Create):\n{article_doc.get('content_html', '')}") 
         # Use html-sanitizer
         sanitized_html = sanitizer.sanitize(article_doc.get('content_html', ''))
         article_doc['content_html'] = sanitized_html
-        # Log HTML AFTER sanitization
-        logger.info(f"Sanitized content_html for create (UI):\n{sanitized_html}")
+        # Log HTML AFTER sanitization at DEBUG level
+        logger.debug(f"Sanitized HTML (UI Create):\n{sanitized_html}") 
     except Exception as e:
         logger.error(f"Error sanitizing HTML content during UI article creation: {e}", exc_info=True)
         return templates.TemplateResponse("admin/article_create.html", {"request": request, "error": "Failed to process article content", "user": user}, status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -545,16 +537,16 @@ async def article_edit_post(
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Article not found")
 
     # Sanitize HTML content before saving
-    sanitizer = Sanitizer({
-        'tags': ALLOWED_TAGS,
-        'attributes': ALLOWED_ATTRIBUTES,
-        'strip': False,
-        'allow_comments': False,
-        'allow_empty': True,
-        # Add passthrough_url if needed for certain attributes like iframe src
-        # 'element_preprocessors': [lambda element: passthrough_url(element, 'src')],
-    })
+    # Remove local sanitizer config
+    # sanitizer_config_edit = { ... }
+    # sanitizer = Sanitizer(sanitizer_config_edit) 
+    
+    # Create sanitizer instance with the default config
+    sanitizer = Sanitizer(DEFAULT_SANITIZER_CONFIG)
+    # Add DEBUG logging before and after sanitization
+    logger.debug(f"Original HTML (UI Edit {article_id}):\n{content_html}")
     sanitized_content = sanitizer.sanitize(content_html)
+    logger.debug(f"Sanitized HTML (UI Edit {article_id}):\n{sanitized_content}")
 
     # Prepare update data
     try:

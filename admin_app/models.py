@@ -32,7 +32,8 @@ class ArticleBase(BaseModel):
     """
     title: str = Field(..., description="Article title")
     slug: str = Field(..., description="URL-friendly identifier (slug) for the article")
-    content_html: str = Field(..., description="HTML content of the article from Tiptap editor")
+    # Make content_html optional to handle older articles potentially missing this field
+    content_html: Optional[str] = Field(None, description="HTML content of the article from Tiptap editor")
     status: ArticleStatus = Field(ArticleStatus.DRAFT, description="Article status: draft/published/archived")
     tags: List[str] = Field(default_factory=list, description="List of tag slugs associated with the article")
     cover_image: Optional[str] = Field(None, description="URL of the cover image")
@@ -64,7 +65,7 @@ class ArticleRead(ArticleBase):
     Model for reading an article (response to the client).
     Includes system fields like id, created_at, updated_at, versions.
     """
-    id: str = Field(..., description="Article ObjectId as a string")
+    id: str = Field(..., alias='_id', description="Article ObjectId as a string")
     created_at: datetime = Field(..., description="Creation timestamp (ISO8601 format handled by FastAPI)")
     updated_at: datetime = Field(..., description="Last update timestamp (ISO8601 format handled by FastAPI)")
     # Define the structure of a version entry for clarity
@@ -79,6 +80,11 @@ class ArticleRead(ArticleBase):
         headline: Optional[str] = None # Explicitly default to None
 
     versions: List[ArticleVersion] = Field(default_factory=list, description="History of article changes")
+
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True
+    }
 
 class ArticleInDB(ArticleRead):
     """
@@ -113,8 +119,13 @@ class TagUpdate(BaseModel):
 
 class TagRead(TagBase):
     """Model for reading a tag (response to the client)."""
-    id: str = Field(..., description="Tag ObjectId as a string")
+    id: str = Field(..., alias='_id', description="Tag ObjectId as a string")
     is_system: bool = Field(False, description="Indicates if the tag is managed by the system config")
+
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True
+    }
 
 class TagInDB(TagRead):
     """Model representing a tag as stored in the database."""

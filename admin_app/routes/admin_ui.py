@@ -404,44 +404,56 @@ async def settings_post(
         return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": "Current password is incorrect", "success": None}, status_code=http_status.HTTP_401_UNAUTHORIZED)
     return templates.TemplateResponse("admin/change_password.html", {"request": request, "user": user, "error": None, "success": "Password changed successfully"})
 
-async def run_generator_script():
-    """Runs the static site generator script as a subprocess."""
-    logger.info("Starting static site generation...")
-    try:
-        # Assuming the generator script is runnable with python and is in the generator/ directory
-        script_path = os.path.join(os.path.dirname(__file__), "..", "..", "generator", "generate.py")
-        logger.info(f"Generator script path: {script_path}")
+# --- Helper function for streaming subprocess output --- Start ---
+async def stream(reader: asyncio.StreamReader, log_method):
+    """Copies lines from a pipe to the specified log method."""
+    while not reader.at_eof():
+        line = await reader.readline()
+        if line:
+            # Decode and strip trailing newline/whitespace
+            log_method(f"Generator: {line.decode().rstrip()}")
+# --- Helper function for streaming subprocess output --- End ---
 
-        # Determine the Python interpreter to use
-        # On Windows, it might be 'python', on Linux/macOS 'python3' or sys.executable
-        python_executable = sys.executable # Use the same interpreter running FastAPI
+async def run_generator_script():
+    """Runs the static site generator script as a subprocess and streams output."""
+    logger.info("Starting static site generation...") # This log is from admin_ui
+    try:
+        script_path = os.path.join(os.path.dirname(__file__), "..", "..", "generator", "generate.py")
+        # No need to log script_path again, done below
+
+        python_executable = sys.executable
         logger.info(f"Using Python executable: {python_executable}")
 
-        # Ensure the script path is absolute
         script_path = os.path.abspath(script_path)
-
-        # Run the script in the project root directory
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(script_path)))
-        logger.info(f"Running script in directory: {project_root}")
+        logger.info(f"Running generator module 'generator.generate' with '{python_executable} -u' in directory: {project_root}")
 
         process = await asyncio.create_subprocess_exec(
             python_executable,
+            '-u',                   # Unbuffered output flag
             '-m',                   # Use the module execution flag
             'generator.generate',   # Specify the module path
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            cwd=project_root        # Set the current working directory to project root (/app)
+            stdout=asyncio.subprocess.PIPE, # Keep PIPE to capture
+            stderr=asyncio.subprocess.PIPE, # Keep PIPE to capture
+            cwd=project_root
         )
-        stdout, stderr = await process.communicate()
 
-        if process.returncode == 0:
-            logger.info("Static site generation completed successfully.")
-            logger.info(f"Generator stdout:\n{stdout.decode()}")
+        # Stream stdout and stderr concurrently using the helper
+        # stdout goes to INFO, stderr goes to DEBUG
+        await asyncio.gather(
+            stream(process.stdout, logger.info),
+            stream(process.stderr, logger.debug), # Generator logs (INFO, DEBUG etc.) go to stderr
+        )
+
+        # Wait for the process to finish and get the return code
+        returncode = await process.wait()
+
+        if returncode == 0:
+            logger.info("Static site generation completed successfully.") # admin_ui log
         else:
-            logger.error(f"Static site generation failed with return code {process.returncode}.")
-            logger.error(f"Generator stderr:\n{stderr.decode()}")
+            logger.error(f"Static site generation failed with return code {returncode}.") # admin_ui log
     except FileNotFoundError:
-        logger.error(f"Generator script not found at {script_path} or python executable {python_executable} not found.")
+        logger.error(f"Generator script module 'generator.generate' or python executable {python_executable} not found.")
     except Exception as e:
         logger.error(f"An error occurred during static site generation: {e}", exc_info=True)
 

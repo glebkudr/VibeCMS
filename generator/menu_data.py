@@ -47,8 +47,14 @@ async def fetch_menu_data(db: AsyncIOMotorDatabase, limit_articles: Optional[int
             logger.warning(f"Did not find any system tags matching slugs: {MENU_TAG_SLUGS}")
             return []
 
-        # Create TagRead objects for easier access
-        menu_tags = {tag_data['slug']: TagRead(**tag_data) for tag_data in menu_tags_data}
+        # Create TagRead objects for easier access, converting ObjectId to str
+        menu_tags = {}
+        for tag_data in menu_tags_data:
+            processed_data = tag_data.copy() # Work on a copy
+            if '_id' in processed_data:
+                processed_data['_id'] = str(processed_data['_id'])
+            menu_tags[processed_data['slug']] = TagRead(**processed_data)
+
         logger.debug(f"Constructed TagRead objects for slugs: {list(menu_tags.keys())}")
 
         # Fetch articles for each menu tag slug in the defined order

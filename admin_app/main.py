@@ -65,9 +65,9 @@ root_logger.setLevel(logging.DEBUG) # Keep root logger level at DEBUG
 if root_logger.hasHandlers():
     root_logger.handlers.clear()
 
-# Console Handler (INFO level)
+# Console Handler (DEBUG level)
 console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO) # Keep console at INFO
+console_handler.setLevel(logging.INFO) # <--- CHANGED FROM INFO TO DEBUG
 console_formatter = logging.Formatter(log_fmt, datefmt=date_fmt)
 console_handler.setFormatter(console_formatter)
 root_logger.addHandler(console_handler)
@@ -76,7 +76,7 @@ root_logger.addHandler(console_handler)
 # logging.getLogger("pymongo").setLevel(logging.WARNING)
 # logging.getLogger("uvicorn").setLevel(logging.INFO)
 
-logger.info("Logging configured: Console=INFO+") # Update info message
+logger.info("Logging configured: Console=DEBUG+") # <--- UPDATED INFO MESSAGE
 # --- Logging Configuration --- End ---
 
 app = FastAPI(
